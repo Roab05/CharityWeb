@@ -1,0 +1,16 @@
+:root { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+
+.custom-green {
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+.project-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.project-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+}
+.progress-bar {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
