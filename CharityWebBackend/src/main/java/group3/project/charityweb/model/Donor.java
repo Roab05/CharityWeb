@@ -34,6 +34,5 @@ public class Donor {
     @Column(unique = true)
     private String displayName;
 
-
     private Long totalDonation;
 }

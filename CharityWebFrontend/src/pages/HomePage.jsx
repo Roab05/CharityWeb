@@ -1,13 +1,15 @@
-import React from 'react';
+import { useEffect } from 'react';
 import ProjectCard from '../components/ProjectCard';
 import mockProjects from '../data/mockProjects';
+import { getAllProjects } from '../services/ProjectService';
 /*
  HomePage
  Props:
  - setCurrentPage, setSelectedProject passed from App
 */
-export default function HomePage({ setCurrentPage, setSelectedProject }) {
-  const recentProjects = mockProjects.slice(0, 3);
+export default function HomePage({ projects, setCurrentPage, setSelectedProject }) {
+
+  const recentProjects = projects.slice(0, 3);
   return (
     <div>
       <section className="relative custom-green text-white py-20 overflow-hidden">

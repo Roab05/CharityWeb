@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Entity
 @Getter
 @Setter
@@ -26,5 +28,8 @@ public class Donation {
 
     private Long amount;
 
+    @Column(columnDefinition = "NVARCHAR(1000)")
     private String message;
+
+    private LocalDate date;
 }

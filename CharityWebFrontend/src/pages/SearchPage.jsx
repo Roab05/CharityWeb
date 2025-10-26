@@ -5,8 +5,8 @@ import mockProjects from '../data/mockProjects';
  SearchPage
  Props: searchTerm, setSelectedProject
 */
-export default function SearchPage({ searchTerm, setSelectedProject }) {
-  const results = mockProjects.filter(project => project.name.toLowerCase().includes(searchTerm.toLowerCase()) || project.description.toLowerCase().includes(searchTerm.toLowerCase()));
+export default function SearchPage({ projects, searchTerm, setSelectedProject }) {
+  const results = projects.filter(project => project.name.toLowerCase().includes(searchTerm.toLowerCase()) || project.description.toLowerCase().includes(searchTerm.toLowerCase()));
   return (
     <div className="py-8">
       <div className="container mx-auto px-4">

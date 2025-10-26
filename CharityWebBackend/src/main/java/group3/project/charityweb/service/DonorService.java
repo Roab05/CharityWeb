@@ -1,5 +1,6 @@
 package group3.project.charityweb.service;
 
+import group3.project.charityweb.dto.DonorUpdateDto;
 import group3.project.charityweb.dto.LoginDto;
 import group3.project.charityweb.dto.PasswordUpdateDto;
 import group3.project.charityweb.exception.DonorNotFoundException;
@@ -61,7 +62,7 @@ public class DonorService {
         return savedDonor;
     }
 
-    public boolean loginByEmail(LoginDto loginDto) throws FailedLoginException {
+    public Donor loginByEmail(LoginDto loginDto) throws FailedLoginException {
         LOG.info("Attempting login for email: {}", loginDto.getEmail());
 
         Donor donor = donorRepository.findByEmail(loginDto.getEmail())
@@ -70,7 +71,7 @@ public class DonorService {
         // passwords match
         if (passwordEncoder.matches(loginDto.getPassword(), donor.getPassword())) {
             LOG.info("Login successful for donor ID: {}", donor.getId());
-            return true;
+            return donor;
         } else {
             LOG.warn("Login failed for email: {}, incorrect password", loginDto.getEmail());
             throw new FailedLoginException("Invalid email or password");
@@ -78,48 +79,53 @@ public class DonorService {
     }
 
 
-    public Donor updateInfoById(String id, Donor updatedDonorData) {
-        LOG.info("Updating info for donor by ID: {}", id);
-        Donor donorToUpdate = getById(id);
+    public Donor updateInfoById(DonorUpdateDto donorUpdateDto) {
+        LOG.info("Updating info for donor by ID: {}", donorUpdateDto.getId());
+        Donor donorToUpdate = getById(donorUpdateDto.getId());
 
         // check if the new phone number is taken by another user
-        Optional<Donor> existingByPhone = donorRepository.findByPhoneNumber(updatedDonorData.getPhoneNumber());
+        Optional<Donor> existingByPhone = donorRepository.findByPhoneNumber(donorUpdateDto.getPhoneNumber());
         if (existingByPhone.isPresent() && !existingByPhone.get().getId().equals(donorToUpdate.getId())) {
-            LOG.warn("Info update failed: Phone number {} is already used", updatedDonorData.getPhoneNumber());
+            LOG.warn("Info update failed: Phone number {} is already used", donorUpdateDto.getPhoneNumber());
             throw new IllegalStateException("Phone number is already in use by another account");
         }
 
         // check if the new display name is taken by another user
-        Optional<Donor> existingByDisplayName = donorRepository.findByDisplayName(updatedDonorData.getDisplayName());
+        Optional<Donor> existingByDisplayName = donorRepository.findByDisplayName(donorUpdateDto.getDisplayName());
         if (existingByDisplayName.isPresent() && !existingByDisplayName.get().getId().equals(donorToUpdate.getId())) {
-            LOG.warn("Info update failed: Display name {} is already used", updatedDonorData.getDisplayName());
+            LOG.warn("Info update failed: Display name {} is already used", donorUpdateDto.getDisplayName());
             throw new IllegalStateException("Display name is already in use by another account");
         }
 
-        donorToUpdate.setPhoneNumber(updatedDonorData.getPhoneNumber());
-        donorToUpdate.setDisplayName(updatedDonorData.getDisplayName());
+        donorToUpdate.setPhoneNumber(donorUpdateDto.getPhoneNumber());
+        donorToUpdate.setDisplayName(donorUpdateDto.getDisplayName());
 
         return donorRepository.save(donorToUpdate);
     }
 
+    public Donor updateTotalDonation(DonorUpdateDto donorUpdateDto) {
+        LOG.info("Updating donation for donor ID: {}", donorUpdateDto.getId());
+        Donor donorToUpdate = getById(donorUpdateDto.getId());
+        donorToUpdate.setTotalDonation(donorToUpdate.getTotalDonation() + donorUpdateDto.getAmount());
+        return donorRepository.save(donorToUpdate);
+    }
 
-
-    public boolean updatePasswordById(String id, PasswordUpdateDto passwordUpdateDto) {
-        LOG.info("Attempting to update password for donor ID: {}", id);
-        Donor donorToUpdate = getById(id);
+    public boolean updatePasswordById(DonorUpdateDto donorUpdateDto) {
+        LOG.info("Attempting to update password for donor ID: {}", donorUpdateDto.getId());
+        Donor donorToUpdate = getById(donorUpdateDto.getId());
 
         // verify current password
-        if (!passwordEncoder.matches(passwordUpdateDto.getCurrentPassword(), donorToUpdate.getPassword())) {
-            LOG.warn("Password update failed for donor ID: {}. Incorrect current password", id);
+        if (!passwordEncoder.matches(donorUpdateDto.getCurrentPassword(), donorToUpdate.getPassword())) {
+            LOG.warn("Password update failed for donor ID: {}. Incorrect current password", donorUpdateDto.getId());
             // Throw an exception instead of returning false for better error handling on the client-side
             throw new SecurityException("Incorrect current password");
         }
 
         // new password hashing and saving
-        donorToUpdate.setPassword(passwordEncoder.encode(passwordUpdateDto.getNewPassword()));
+        donorToUpdate.setPassword(passwordEncoder.encode(donorUpdateDto.getNewPassword()));
         donorRepository.save(donorToUpdate);
 
-        LOG.info("Password successfully updated for donor ID: {}", id);
+        LOG.info("Password successfully updated for donor ID: {}", donorUpdateDto.getId());
         return true;
     }
 }

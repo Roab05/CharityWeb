@@ -12,7 +12,7 @@ export default function ContactPage() {
 
           <div className="space-y-4 text-gray-700">
             <p>
-              <span className="font-semibold text-gray-800">📍 Địa chỉ:</span> 123 Đường ABC, Quận 1, TP.HCM
+              <span className="font-semibold text-gray-800">📍 Địa chỉ:</span> 123 Đường ABC, Cầu Giấy, Hà Nội
             </p>
             <p>
               <span className="font-semibold text-gray-800">📞 Hotline:</span> 1900-1234 (24/7)

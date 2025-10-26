@@ -43,11 +43,11 @@ export default function AboutPage() {
         <h2 className="text-2xl font-semibold text-green-700 mb-4">Thành tựu</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-center">
           <div className="bg-green-50 rounded-xl p-6 shadow-sm">
-            <p className="text-3xl font-bold text-green-700 mb-1">1,000+</p>
+            <p className="text-3xl font-bold text-green-700 mb-1">250+</p>
             <p className="text-gray-700">Dự án đã được hỗ trợ</p>
           </div>
           <div className="bg-green-50 rounded-xl p-6 shadow-sm">
-            <p className="text-3xl font-bold text-green-700 mb-1">50,000+</p>
+            <p className="text-3xl font-bold text-green-700 mb-1">2,000+</p>
             <p className="text-gray-700">Người dùng tích cực</p>
           </div>
         </div>

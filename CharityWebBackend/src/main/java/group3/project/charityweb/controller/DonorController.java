@@ -1,5 +1,6 @@
 package group3.project.charityweb.controller;
 
+import group3.project.charityweb.dto.DonorUpdateDto;
 import group3.project.charityweb.dto.LoginDto;
 import group3.project.charityweb.dto.PasswordUpdateDto;
 import group3.project.charityweb.model.Donor;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.security.auth.login.FailedLoginException;
 
+@CrossOrigin
 @RestController
 @AllArgsConstructor
 @RequestMapping(path = "/api/donors/")
@@ -38,26 +40,29 @@ public class DonorController {
 
     @PostMapping(path = "/login")
     public ResponseEntity<Donor> login(@RequestBody LoginDto loginDto) throws FailedLoginException {
-        boolean loginSuccessful = donorService.loginByEmail(loginDto);
-        if (loginSuccessful)
-            return new ResponseEntity<>(HttpStatus.OK);
+        Donor donor = donorService.loginByEmail(loginDto);
+        if (donor != null)
+            return ResponseEntity.ok(donor);
         return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
 
 
-    @PutMapping(path = "/{id}/info_update")
-    public ResponseEntity<Donor> updateDonorInfo(@PathVariable("id") String id,
-                                                 @RequestBody Donor donor) {
-        Donor updatedDonor = donorService.updateInfoById(id, donor);
+    @PutMapping(path = "/info_update")
+    public ResponseEntity<Donor> updateDonorInfo(@RequestBody DonorUpdateDto donorUpdateDto) {
+        Donor updatedDonor = donorService.updateInfoById(donorUpdateDto);
         return ResponseEntity.ok(updatedDonor);
     }
 
+    @PutMapping(path = "/donation_update")
+    public ResponseEntity<Donor> updateDonorTotalDonation(@RequestBody DonorUpdateDto donorUpdateDto) {
+        Donor updatedDonor = donorService.updateTotalDonation(donorUpdateDto);
+        return ResponseEntity.ok(updatedDonor);
+    }
 
-
-    @PutMapping(path = "/{id}/password_update")
-    public ResponseEntity<Donor> updatePassword(@PathVariable("id") String id, @RequestBody PasswordUpdateDto passwordUpdateDto) {
-        boolean updatedSuccessful = donorService.updatePasswordById(id, passwordUpdateDto);
+    @PutMapping(path = "/password_update")
+    public ResponseEntity<Donor> updatePassword(@RequestBody DonorUpdateDto donorUpdateDto) {
+        boolean updatedSuccessful = donorService.updatePasswordById(donorUpdateDto);
         if (!updatedSuccessful)
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         return new ResponseEntity<>(HttpStatus.OK);
