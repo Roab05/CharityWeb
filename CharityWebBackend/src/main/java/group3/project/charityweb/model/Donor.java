@@ -19,6 +19,7 @@ public class Donor {
     @UuidGenerator
     private String id;
 
+    private Boolean admin;
 
     @Column(unique = true)
     private String email;

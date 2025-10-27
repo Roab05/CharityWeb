@@ -52,6 +52,7 @@ export default function LoginModal({ showLogin, setShowLogin, setUser }) {
           return;
         }
 
+
         const res = await registerAccount(registerData);
 
         setUser(res.data);
@@ -99,7 +100,7 @@ export default function LoginModal({ showLogin, setShowLogin, setUser }) {
           {!isLogin && (<>
             <div><label className="block text-gray-700 font-medium mb-2">Email</label><input type="email" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={registerData.email} onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })} required /></div>
             <div><label className="block text-gray-700 font-medium mb-2">Mật khẩu</label><input type="password" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={registerData.password} onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })} required /></div>
-            <div><label className="block text-gray-700 font-medium mb-2">Tên người dùng</label><input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={registerData.displayName} onChange={(e) => setRegisterData({ ...registerData, displayName: e.target.value })} required /></div>
+            <div><label className="block text-gray-700 font-medium mb-2">Tên hiển thị</label><input type="text" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={registerData.displayName} onChange={(e) => setRegisterData({ ...registerData, displayName: e.target.value })} required /></div>
             <div><label className="block text-gray-700 font-medium mb-2">Số điện thoại</label><input type="tel" className="w-full px-4 py-2 border border-gray-300 rounded-lg" value={registerData.phoneNumber} onChange={(e) => setRegisterData({ ...registerData, phoneNumber: e.target.value })} required /></div>
           </>)}
           <button type="submit" disabled={loading} className={`w-full py-3 rounded-lg font-semibold transition-colors ${loading ? 'bg-gray-400 text-gray-200 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700'}`}>

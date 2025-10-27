@@ -56,6 +56,7 @@ public class DonorService {
         // password hashing and saving
         newDonor.setPassword(passwordEncoder.encode(newDonor.getPassword()));
         newDonor.setTotalDonation(0L);
+        newDonor.setAdmin(false);
 
         Donor savedDonor = donorRepository.save(newDonor);
         LOG.info("Successfully registered donor account with ID: {}", savedDonor.getId());

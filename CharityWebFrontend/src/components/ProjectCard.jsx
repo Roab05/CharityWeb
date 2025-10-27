@@ -1,6 +1,7 @@
 import React from 'react';
 import { useState, useEffect } from 'react';
-import { getByProjectId } from '../services/DonationService';
+import { getByProjectId as getDonationsByProjectId } from '../services/DonationService';
+import { getProject, getProjectDaysLeft, getProjectState } from '../services/ProjectService';
 /*
  ProjectCard component
  Props:
@@ -10,23 +11,38 @@ import { getByProjectId } from '../services/DonationService';
 export default function ProjectCard({ project, onClick }) {
 
   const [donations, setDonations] = useState([]);
+  const [currentProject, setCurrentProject] = useState(project);
   const [progressPercentage, setProgressPercentage] = useState(0);
+  const [daysLeft, setDaysLeft] = useState(null);
+  const [state, setState] = useState(null);
 
-  const fetchDonations = async () => {
+  const fetchData = async () => {
     try {
-      const response = await getByProjectId(project.id);
-      setDonations(response.data);
+      const response1 = await getDonationsByProjectId(project.id);
+      const response2 = await getProject(project.id);
+      const stateRes = await getProjectState(currentProject.id);
+      const daysRes = await getProjectDaysLeft(currentProject.id);
+
+      const updatedProject = response2.data;
+
+      setDonations(response1.data.reverse());
+      donations.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setCurrentProject(updatedProject);
+      setProgressPercentage(updatedProject.currentAmount / updatedProject.targetAmount * 100);
+      setState(stateRes.data);
+      setDaysLeft(daysRes.data);
+
     } catch (error) {
       console.error("Error fetching donations:", error);
     }
   };
 
   useEffect(() => {
-    fetchDonations();
+    fetchData();
 
     setProgressPercentage(project.currentAmount / project.targetAmount * 100);
 
-    const interval = setInterval(fetchDonations, 3000);
+    const interval = setInterval(fetchData, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -39,7 +55,7 @@ export default function ProjectCard({ project, onClick }) {
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Đã gây quỹ</span>
-            <span>{Math.round(progressPercentage)}%</span>
+            <span>{Math.round(progressPercentage * 100) / 100}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div className="progress-bar h-2 rounded-full" style={{ width: `${Math.min(progressPercentage, 100)}%` }}></div>
@@ -51,9 +67,11 @@ export default function ProjectCard({ project, onClick }) {
           </span>
           <span className="text-gray-500">{donations.length} lượt ủng hộ</span>
         </div>
-        {/* <div className="mt-2 text-sm">
-          {project.active ? (<span className="text-orange-600">⏰ Còn {project.daysLeft} ngày</span>) : (<span className="text-red-600">❌ Đã kết thúc</span>)}
-        </div> */}
+        <div className="mt-2 text-sm">
+          {state === 0 && <span>⏰ Sắp diễn ra </span>}
+          {state === 1 && <span className="text-orange-600">⏰ Còn {daysLeft} ngày</span>}
+          {state === 2 && <span className="text-red-600"> ❌ Đã kết thúc</span>}
+        </div>
       </div>
     </div>
   );

@@ -15,6 +15,7 @@ import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
 import TermsPage from './pages/TermsPage';
 import HelpPage from './pages/HelpPage';
+import ProjectUploadPage from './pages/ProjectUploadPage';
 import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginModal from './components/modals/LoginModal';
 import DonationModal from './components/modals/DonationModal';
@@ -34,7 +35,7 @@ export default function App() {
   const fetchProjects = async () => {
     try {
       const response = await getAllProjects();
-      setProjects(response.data.reverse());
+      setProjects(response.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
@@ -60,6 +61,7 @@ export default function App() {
       case 'contact': return <ContactPage />;
       case 'terms': return <TermsPage />;
       case 'help': return <HelpPage />;
+      case 'upload': return <ProjectUploadPage setCurrentPage={setCurrentPage} />;
       default: return <HomePage setCurrentPage={setCurrentPage} setSelectedProject={setSelectedProject} />;
     }
   };

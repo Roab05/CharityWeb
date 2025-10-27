@@ -14,7 +14,7 @@ export default function DonationModal({ user, showDonation, setShowDonation, pro
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    setDonationData({ name: formData.name, amount: formData.amount, projectName: project?.name });
+    setDonationData({ name: user.displayName, amount: formData.amount, projectName: project?.name });
     setShowDonation(false);
     setShowThankYou(true);
     setFormData({ amount: '', message: '' });

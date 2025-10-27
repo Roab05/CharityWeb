@@ -27,6 +27,7 @@ export default function Header({ currentPage, setCurrentPage, user, setUser, set
             <button className={`hover:text-green-600 transition-colors ${currentPage === 'home' ? 'text-green-600 font-semibold' : 'text-gray-700'}`} onClick={() => { setCurrentPage('home'); setSelectedProject(null); }}>Trang chủ</button>
             <button className={`hover:text-green-600 transition-colors ${currentPage === 'projects' ? 'text-green-600 font-semibold' : 'text-gray-700'}`} onClick={() => { setCurrentPage('projects'); setSelectedProject(null); }}>Dự án</button>
             <button className={`hover:text-green-600 transition-colors ${currentPage === 'categories' ? 'text-green-600 font-semibold' : 'text-gray-700'}`} onClick={() => { setCurrentPage('categories'); setSelectedProject(null); }}>Phân loại</button>
+            {user?.admin && <button className={`hover:text-green-600 transition-colors ${currentPage === 'upload' ? 'text-green-600 font-semibold' : 'text-gray-700'}`} onClick={() => { setCurrentPage('upload'); setSelectedProject(null); }}>Đăng dự án</button>}
           </nav>
           <div className="flex items-center space-x-4">
             <form onSubmit={handleSearch} className="relative">
@@ -38,7 +39,7 @@ export default function Header({ currentPage, setCurrentPage, user, setUser, set
             {user ? (
               <div className="flex items-center space-x-2">
                 <button className="text-green-600 hover:text-green-700" onClick={() => { setCurrentPage('profile'); setSelectedProject(null); }}>👤 {user.displayName}</button>
-                <button className="text-red-600 hover:text-red-700" onClick={() => setUser(null)}>Đăng xuất</button>
+                <button className="text-red-600 hover:text-red-700" onClick={() => { setUser(null); setCurrentPage('home'); setSelectedProject(null); }}>Đăng xuất</button>
               </div>
             ) : (
               <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors" onClick={() => setShowLogin(true)}>Đăng nhập</button>

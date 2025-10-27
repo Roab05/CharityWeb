@@ -47,4 +47,16 @@ public class ProjectController {
         Long currentAmount = projectService.getCurrentAmount(id);
         return new ResponseEntity<>(currentAmount, HttpStatus.OK);
     }
+
+    @GetMapping(path = "/{id}/days_left")
+    public ResponseEntity<Long> getProjectDaysLeft(@PathVariable("id") String id) {
+        Long daysLeft = projectService.getDaysLeft(id);
+        return ResponseEntity.ok(daysLeft);
+    }
+
+    @GetMapping(path = "/{id}/state")
+    public ResponseEntity<Integer> getProjectState(@PathVariable("id") String id) {
+        Integer state = projectService.getState(id);
+        return ResponseEntity.ok(state);
+    }
 }

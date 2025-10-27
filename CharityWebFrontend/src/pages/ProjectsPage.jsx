@@ -17,6 +17,7 @@ export default function ProjectsPage({ projects, setSelectedProject }) {
           <button className={`px-4 py-2 rounded-lg ${filter === 'Động vật hoang dã' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setFilter('Động vật hoang dã')}>Động vật hoang dã</button>
           <button className={`px-4 py-2 rounded-lg ${filter === 'Xã hội' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setFilter('Xã hội')}>Xã hội</button>
           <button className={`px-4 py-2 rounded-lg ${filter === 'Môi trường' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setFilter('Môi trường')}>Môi trường</button>
+          <button className={`px-4 py-2 rounded-lg ${filter === 'Khác' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700'}`} onClick={() => setFilter('Khác')}>Khác</button>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map(p => <ProjectCard key={p.id} project={p} onClick={setSelectedProject} />)}
