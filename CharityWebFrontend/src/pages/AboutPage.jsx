@@ -1,5 +1,3 @@
-import React from "react";
-
 /*
   AboutPage – Trang giới thiệu
   Hiển thị thông tin về GayQuy.vn, sứ mệnh, giá trị cốt lõi và thành tựu.

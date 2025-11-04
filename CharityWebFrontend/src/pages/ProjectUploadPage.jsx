@@ -154,7 +154,7 @@ export default function ProjectUploadPage({ setCurrentPage }) {
             type="submit"
             className="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg py-3 transition-all duration-200"
           >
-            Gửi dự án
+            Đăng dự án
           </button>
         </form>
       </div>

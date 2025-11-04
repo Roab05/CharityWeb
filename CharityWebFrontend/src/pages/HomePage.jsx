@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
 import ProjectCard from '../components/ProjectCard';
-import mockProjects from '../data/mockProjects';
-import { getAllProjects } from '../services/ProjectService';
 /*
  HomePage
  Props:

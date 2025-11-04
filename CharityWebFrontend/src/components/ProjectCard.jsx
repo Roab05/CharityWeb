@@ -1,4 +1,3 @@
-import React from 'react';
 import { useState, useEffect } from 'react';
 import { getByProjectId as getDonationsByProjectId } from '../services/DonationService';
 import { getProject, getProjectDaysLeft, getProjectState } from '../services/ProjectService';
@@ -40,18 +39,18 @@ export default function ProjectCard({ project, onClick }) {
   useEffect(() => {
     fetchData();
 
-    setProgressPercentage(project.currentAmount / project.targetAmount * 100);
+    setProgressPercentage(currentProject.currentAmount / currentProject.targetAmount * 100);
 
     const interval = setInterval(fetchData, 3000);
 
     return () => clearInterval(interval);
   }, []);
   return (
-    <div className="project-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" onClick={() => { onClick(project); window.scrollTo(0, 0) }}>
-      <img src={project.imageUrl} alt={project.name} className="w-full h-48 object-cover" />
+    <div className="project-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" onClick={() => { onClick(currentProject); window.scrollTo(0, 0) }}>
+      <img src={currentProject.imageUrl} alt={currentProject.name} className="w-full h-48 object-cover" />
       <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{project.name}</h3>
-        <p className="text-gray-600 mb-4 line-clamp-2">{project.description}</p>
+        <h3 className="text-xl font-semibold mb-2">{currentProject.name}</h3>
+        <p className="text-gray-600 mb-4 line-clamp-2">{currentProject.description}</p>
         <div className="mb-4">
           <div className="flex justify-between text-sm text-gray-600 mb-1">
             <span>Đã gây quỹ</span>
@@ -63,7 +62,7 @@ export default function ProjectCard({ project, onClick }) {
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-green-600 font-semibold">
-            {project.currentAmount.toLocaleString('vi-VN')} VNĐ
+            {currentProject.currentAmount.toLocaleString('vi-VN')} VNĐ
           </span>
           <span className="text-gray-500">{donations.length} lượt ủng hộ</span>
         </div>

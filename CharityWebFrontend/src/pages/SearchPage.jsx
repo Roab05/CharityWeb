@@ -1,6 +1,4 @@
-import React from 'react';
 import ProjectCard from '../components/ProjectCard';
-import mockProjects from '../data/mockProjects';
 /*
  SearchPage
  Props: searchTerm, setSelectedProject

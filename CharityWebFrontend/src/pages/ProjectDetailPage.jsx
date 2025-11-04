@@ -67,10 +67,10 @@ export default function ProjectDetailPage({ project, setShowDonation }) {
                                 <p className="text-gray-700 leading-relaxed mb-6 whitespace-pre-line">{project.description}</p>
                             </div>
                         </div>
-                        <div className="lg:col-span-1">
+                        {state > 0 && <div className="lg:col-span-1">
                             <div className="bg-white rounded-xl shadow-lg p-6 sticky top-24">
-                                <button className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors mb-6" onClick={() => setShowDonation(true)}>Ủng hộ ngay</button>
-                                <h3 className="text-lg font-semibold mb-4">Danh sách ủng hộ</h3>
+                                {state == 1 && <button className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors mb-6" onClick={() => setShowDonation(true)}>Ủng hộ ngay</button>}
+                                <h3 className="text-lg font-semibold mb-4">Danh sách ủng hộ ({donations.length})</h3>
                                 <div className="space-y-4 max-h-96 overflow-y-auto">
                                     {donations.map((donation, i) => (<div key={i} className="border-b border-gray-100 pb-4">
                                         <div className="flex justify-between items-start mb-2">
@@ -82,7 +82,7 @@ export default function ProjectDetailPage({ project, setShowDonation }) {
                                     </div>))}
                                 </div>
                             </div>
-                        </div>
+                        </div>}
                     </div>
                 </div>
             </div>

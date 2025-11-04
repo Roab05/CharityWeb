@@ -1,4 +1,3 @@
-import React from "react";
 
 /*
   TermsPage – Trang điều khoản sử dụng

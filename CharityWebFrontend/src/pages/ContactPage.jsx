@@ -1,5 +1,3 @@
-import React from "react";
-
 /*
   ContactPage – Liên hệ với chúng tôi
 */
