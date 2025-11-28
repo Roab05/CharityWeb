@@ -12,6 +12,12 @@ export const updateProjectAmount = (data) => axios.put(REST_API_BASE_URL + "/upd
 
 export const getProjectCurrentAmount = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/current_amount");
 
+export const getProjectDonationCount = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/donation_count");
+
 export const getProjectDaysLeft = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/days_left");
 
 export const getProjectState = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/state");
+
+export const updateProjectInfo = (data) => axios.put(REST_API_BASE_URL + "/update_info", data);
+
+export const deleteProject = (id) => axios.delete(REST_API_BASE_URL + "/" + id + "/delete");

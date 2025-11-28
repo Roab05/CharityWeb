@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { addDonation } from '../../services/DonationService';
 import { updateProjectAmount } from '../../services/ProjectService';
-import { updateDonorTotalDonation } from '../../services/DonorService';
+
 /*
  DonationModal component
  Props:
@@ -19,10 +19,9 @@ export default function DonationModal({ user, showDonation, setShowDonation, pro
     setShowThankYou(true);
     setFormData({ amount: '', message: '' });
 
-    addDonation({ donor: user, project: project, amount: formData.amount, message: formData.message })
+    addDonation({ user: user, project: project, amount: formData.amount, message: formData.message })
 
     updateProjectAmount({ id: project.id, amount: formData.amount });
-    updateDonorTotalDonation({ id: user.id, amount: formData.amount })
   };
   if (!showDonation) return null;
   return (

@@ -20,6 +20,10 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import LoginModal from './components/modals/LoginModal';
 import DonationModal from './components/modals/DonationModal';
 import ThankYouModal from './components/modals/ThankYouModal';
+import UpdateUserInfoModal from './components/modals/UpdateUserInfoModal';
+import UpdatePasswordModal from './components/modals/UpdatePasswordModal';
+import UpdateProjectInfoModal from './components/modals/UpdateProjectInfoModal';
+import DeleteProjectModal from './components/modals/DeleteProjectModal';
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -31,6 +35,10 @@ export default function App() {
   const [showThankYou, setShowThankYou] = useState(false);
   const [donationData, setDonationData] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showUpdateInfo, setShowUpdateInfo] = useState(false);
+  const [showUpdatePassword, setShowUpdatePassword] = useState(false);
+  const [showProjectUpdate, setShowProjectUpdate] = useState(false);
+  const [showDeleteProject, setShowDeleteProject] = useState(false);
 
   const fetchProjects = async () => {
     try {
@@ -50,13 +58,13 @@ export default function App() {
   }, []);
 
   const renderPage = () => {
-    if (selectedProject) return <ProjectDetailPage project={selectedProject} setShowDonation={setShowDonation} />;
+    if (selectedProject) return <ProjectDetailPage user={user} project={selectedProject} setShowDonation={setShowDonation} setShowProjectUpdate={setShowProjectUpdate} setShowDeleteProject={setShowDeleteProject} />;
     switch (currentPage) {
       case 'home': return <HomePage projects={projects} setCurrentPage={setCurrentPage} setSelectedProject={setSelectedProject} />;
       case 'projects': return <ProjectsPage projects={projects} setSelectedProject={setSelectedProject} />;
       case 'categories': return <CategoriesPage projects={projects} setSelectedProject={setSelectedProject} />;
       case 'search': return <SearchPage projects={projects} searchTerm={searchTerm} setSelectedProject={setSelectedProject} />;
-      case 'profile': return user ? <ProfilePage user={user} /> : <HomePage projects={projects} setCurrentPage={setCurrentPage} setSelectedProject={setSelectedProject} />;
+      case 'profile': return user ? <ProfilePage user={user} setShowUpdateInfo={setShowUpdateInfo} setShowUpdatePassword={setShowUpdatePassword} /> : <HomePage projects={projects} setCurrentPage={setCurrentPage} setSelectedProject={setSelectedProject} />;
       case 'about': return <AboutPage />;
       case 'contact': return <ContactPage />;
       case 'terms': return <TermsPage />;
@@ -75,6 +83,10 @@ export default function App() {
       <LoginModal showLogin={showLogin} setShowLogin={setShowLogin} setUser={setUser} />
       <DonationModal user={user} showDonation={showDonation} setShowDonation={setShowDonation} project={selectedProject} setShowThankYou={setShowThankYou} setDonationData={setDonationData} />
       <ThankYouModal showThankYou={showThankYou} setShowThankYou={setShowThankYou} donationData={donationData} />
+      <UpdateUserInfoModal showUpdateInfo={showUpdateInfo} setShowUpdateInfo={setShowUpdateInfo} user={user} setUser={setUser} />
+      <UpdatePasswordModal showUpdatePassword={showUpdatePassword} setShowUpdatePassword={setShowUpdatePassword} user={user} setUser={setUser} />
+      <UpdateProjectInfoModal showProjectUpdate={showProjectUpdate} setShowProjectUpdate={setShowProjectUpdate} project={selectedProject} />
+      <DeleteProjectModal showDeleteProject={showDeleteProject} setShowDeleteProject={setShowDeleteProject} setSelectedProject={setSelectedProject} project={selectedProject} />
     </div>
   );
 }

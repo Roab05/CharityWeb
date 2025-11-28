@@ -35,15 +35,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
-/*
-// 2. Define Authorization Rules
-                .authorizeHttpRequests(auth -> auth
-                        // Allow public access to the registration and login endpoints
-                        // IMPORTANT: Replace with your actual controller paths
-                        .requestMatchers("/api/donors/register", "/api/donors/login").permitAll()
-
-                        // All other requests must be authenticated
-                        .anyRequest().authenticated()
-                )
- */

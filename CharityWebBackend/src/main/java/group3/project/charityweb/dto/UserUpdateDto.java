@@ -5,26 +5,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProjectUpdateDto {
+public class UserUpdateDto {
     private String id;
-
-    private String name;
-
-    private String category;
-
-    private String description;
-
-    private Long targetAmount;
-
-    private String imageUrl;
-
-    private LocalDate endDate;
-
+    private String displayName;
+    private String phoneNumber;
+    private String currentPassword;
+    private String newPassword;
     private Long amount;
 }

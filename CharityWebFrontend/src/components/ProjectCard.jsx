@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getByProjectId as getDonationsByProjectId } from '../services/DonationService';
-import { getProject, getProjectDaysLeft, getProjectState } from '../services/ProjectService';
+import { getProject, getProjectCurrentAmount, getProjectDaysLeft, getProjectDonationCount, getProjectState } from '../services/ProjectService';
 /*
  ProjectCard component
  Props:
@@ -9,27 +9,31 @@ import { getProject, getProjectDaysLeft, getProjectState } from '../services/Pro
 */
 export default function ProjectCard({ project, onClick }) {
 
-  const [donations, setDonations] = useState([]);
   const [currentProject, setCurrentProject] = useState(project);
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [daysLeft, setDaysLeft] = useState(null);
+  const [currentAmount, setCurrentAmount] = useState(0);
+  const [donationCount, setDonationCount] = useState(0);
   const [state, setState] = useState(null);
 
   const fetchData = async () => {
     try {
-      const response1 = await getDonationsByProjectId(project.id);
-      const response2 = await getProject(project.id);
+      const projectRes = await getProject(currentProject.id);
+      const amountRes = await getProjectCurrentAmount(currentProject.id)
+      const donRes = await getProjectDonationCount(currentProject.id)
       const stateRes = await getProjectState(currentProject.id);
       const daysRes = await getProjectDaysLeft(currentProject.id);
 
-      const updatedProject = response2.data;
 
-      setDonations(response1.data.reverse());
-      donations.sort((a, b) => new Date(b.date) - new Date(a.date));
+      const updatedProject = projectRes.data;
+
       setCurrentProject(updatedProject);
-      setProgressPercentage(updatedProject.currentAmount / updatedProject.targetAmount * 100);
+      setCurrentAmount(amountRes.data);
+      setDonationCount(donRes.data);
       setState(stateRes.data);
       setDaysLeft(daysRes.data);
+
+      setProgressPercentage(amountRes.data / updatedProject.targetAmount * 100);
 
     } catch (error) {
       console.error("Error fetching donations:", error);
@@ -39,7 +43,7 @@ export default function ProjectCard({ project, onClick }) {
   useEffect(() => {
     fetchData();
 
-    setProgressPercentage(currentProject.currentAmount / currentProject.targetAmount * 100);
+    setProgressPercentage(currentAmount / currentProject.targetAmount * 100);
 
     const interval = setInterval(fetchData, 3000);
 
@@ -62,9 +66,9 @@ export default function ProjectCard({ project, onClick }) {
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-green-600 font-semibold">
-            {currentProject.currentAmount.toLocaleString('vi-VN')} VNĐ
+            {currentAmount.toLocaleString('vi-VN')} VNĐ
           </span>
-          <span className="text-gray-500">{donations.length} lượt ủng hộ</span>
+          <span className="text-gray-500">{donationCount} lượt ủng hộ</span>
         </div>
         <div className="mt-2 text-sm">
           {state === 0 && <span>⏰ Sắp diễn ra </span>}

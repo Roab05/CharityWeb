@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { login, registerAccount, } from '../../services/DonorService'
+import { login, registerAccount, } from '../../services/UserService'
 /*
  LoginModal component: demo in-memory auth.
  Props:
