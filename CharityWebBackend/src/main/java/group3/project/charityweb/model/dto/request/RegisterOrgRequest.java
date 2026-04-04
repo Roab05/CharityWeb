@@ -13,6 +13,6 @@ public class RegisterOrgRequest {
     private String websiteURL;
     private String address;
     private String description;
-    private String contactEmail;
-    private String contactPhone;
+    private String email;
+    private String phone;
 }

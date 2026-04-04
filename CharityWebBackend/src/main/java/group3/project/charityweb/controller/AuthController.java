@@ -20,16 +20,24 @@ public class AuthController {
 
     @PostMapping("/register/individual")
     public ResponseEntity<?> registerIndividual(@RequestBody RegisterIndivRequest request) {
-        authService.registerIndividual(request);
+        String newIndId = authService.registerIndividual(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Đăng ký tài khoản cá nhân thành công"));
+                .body(Map.of(
+                        "message", "Đăng ký tài khoản Cá nhân thành công.",
+                        "id", newIndId // Trả thêm trường id
+                ));
     }
 
     @PostMapping("/register/organization")
     public ResponseEntity<?> registerOrganization(@RequestBody RegisterOrgRequest request) {
-        authService.registerOrganization(request);
+        String newOrgId = authService.registerOrganization(request);
+
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Đăng ký tài khoản tổ chức thành công"));
+                .body(Map.of(
+                        "message", "Đăng ký Tổ chức thành công. Vui lòng chờ Admin phê duyệt.",
+                        "id", newOrgId
+                ));
     }
 
     @PostMapping("/login")

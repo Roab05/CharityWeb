@@ -28,12 +28,6 @@ public class Organization extends User {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "contact_email")
-    private String contactEmail;
-
-    @Column(name = "contact_phone", length = 15)
-    private String contactPhone;
-
     // Mapping bảng trung gian Organization_Project theo đúng sơ đồ của bạn
     @ManyToMany(mappedBy = "organizations")
     private List<Project> projects;

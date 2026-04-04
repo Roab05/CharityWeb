@@ -34,13 +34,17 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider jwtTokenProvider;
 
     // Logic Đăng ký Cá nhân
-    public void registerIndividual(RegisterIndivRequest request) {
+    public String registerIndividual(RegisterIndivRequest request) {
         // 1. Kiểm tra tồn tại
         if (accountRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Tên đăng nhập đã tồn tại!");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email đã được sử dụng!");
+        }
+
+        if (request.getPhone() != null && individualRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Số điện thoại này đã được một tài khoản Cá nhân khác sử dụng!");
         }
 
         // 2. Map DTO sang Entity
@@ -56,15 +60,21 @@ public class AuthServiceImpl implements AuthService {
         individual.setCreatedAt(LocalDateTime.now());
 
         individualRepository.save(individual);
+
+        return individual.getId();
     }
 
-    public void registerOrganization(RegisterOrgRequest request) {
+    public String registerOrganization(RegisterOrgRequest request) {
         // 1. Kiểm tra tồn tại
         if (accountRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Tên đăng nhập đã tồn tại!");
         }
-        if (userRepository.existsByEmail(request.getContactEmail())) {
+        if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email đã được sử dụng!");
+        }
+
+        if (request.getPhone() != null && organizationRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Số điện thoại này đã được một Tổ chức khác sử dụng!");
         }
 
         // 2. Map DTO sang Entity
@@ -75,14 +85,16 @@ public class AuthServiceImpl implements AuthService {
         organization.setDoe(request.getDoe());
         organization.setWebsiteURL(request.getWebsiteURL());
         organization.setDescription(request.getDescription());
-        organization.setContactEmail(request.getContactEmail());
-        organization.setContactPhone(request.getContactPhone());
+        organization.setEmail(request.getEmail());
+        organization.setPhone(request.getPhone());
         organization.setAddress(request.getAddress());
 
         organization.setStatus(2);
         organization.setCreatedAt(LocalDateTime.now());
 
         organizationRepository.save(organization);
+
+        return organization.getId();
     }
 
     // Logic Đăng nhập & Tạo Token

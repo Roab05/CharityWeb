@@ -10,6 +10,5 @@ public class UpdateProfileRequest {
     private String name;
     private String websiteURL;
     private String description;
-    private String contactEmail;
-    private String contactPhone;
+    private String email;
 }

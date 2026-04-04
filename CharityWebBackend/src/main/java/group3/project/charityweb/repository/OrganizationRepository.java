@@ -10,4 +10,5 @@ public interface OrganizationRepository extends JpaRepository<Organization, Stri
     Optional<Organization> findByUsername(String username);
     List<Organization> findByStatusOrderByCreatedAtDesc(Integer status);
     long countByStatus(Integer status);
+    boolean existsByPhone(String phone);
 }

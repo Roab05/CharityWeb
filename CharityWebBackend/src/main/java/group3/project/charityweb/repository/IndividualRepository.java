@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface IndividualRepository extends JpaRepository<Individual, String> {
-
+    boolean existsByPhone(String phone);
 }

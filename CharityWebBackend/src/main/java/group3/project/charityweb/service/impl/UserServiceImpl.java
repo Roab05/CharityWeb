@@ -32,17 +32,15 @@ public class UserServiceImpl implements UserService {
                 .username(account.getUsername())
                 .status(account.getStatus());
 
-        if (account instanceof Admin) {
-            builder.roleType("ADMIN");
-        } else if (account instanceof Individual individual) {
-            builder.roleType("INDIVIDUAL")
+        switch (account) {
+            case Admin admin -> builder.roleType("ADMIN");
+            case Individual individual -> builder.roleType("INDIVIDUAL")
                     .email(individual.getEmail())
                     .phone(individual.getPhone())
                     .totalDonatedAmount(individual.getTotalDonatedAmount())
                     .fullName(individual.getFullName())
                     .address(individual.getAddress());
-        } else if (account instanceof Organization org) {
-            builder.roleType("ORGANIZATION")
+            case Organization org -> builder.roleType("ORGANIZATION")
                     .email(org.getEmail())
                     .phone(org.getPhone())
                     .totalDonatedAmount(org.getTotalDonatedAmount())
@@ -50,6 +48,8 @@ public class UserServiceImpl implements UserService {
                     .address(org.getAddress())
                     .websiteURL(org.getWebsiteURL())
                     .description(org.getDescription());
+            default -> {
+            }
         }
 
         return builder.build();
@@ -72,8 +72,8 @@ public class UserServiceImpl implements UserService {
             if (request.getName() != null) org.setName(request.getName());
             if (request.getWebsiteURL() != null) org.setWebsiteURL(request.getWebsiteURL());
             if (request.getDescription() != null) org.setDescription(request.getDescription());
-            if (request.getContactEmail() != null) org.setContactEmail(request.getContactEmail());
-            if (request.getContactPhone() != null) org.setContactPhone(request.getContactPhone());
+            if (request.getEmail() != null) org.setEmail(request.getEmail());
+            if (request.getPhone() != null) org.setPhone(request.getPhone());
         }
 
         accountRepository.save(account);
