@@ -9,9 +9,9 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 public interface ProjectService {
-    void createProject(String username, CreateProjectRequest request);
+    String createProject(String username, CreateProjectRequest request);
     Page<ProjectResponse> getAllProjects(Integer status, String categoryId, int page, int size);
     ProjectResponse getProjectResponseById(String projectId);
-    void createActivity(String username, String projectId, ActivityRequest request);
+    String createActivity(String username, String projectId, ActivityRequest request);
     List<ActivityResponse> getProjectActivities(String projectId);
 }

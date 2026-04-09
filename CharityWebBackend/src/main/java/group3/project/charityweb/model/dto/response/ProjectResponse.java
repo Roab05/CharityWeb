@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 public class ProjectResponse {
     private String projectId;
+    private String projectName;
     private LocalDateTime createdAt;
     private LocalDate startDate;
     private LocalDate endDate;

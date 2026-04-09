@@ -46,7 +46,6 @@ public class DonationServiceImpl implements DonationService {
 
         // 1. Lưu Donation trạng thái Pending (2)
         Donation donation = new Donation();
-        donation.setDonationId(UUID.randomUUID().toString());
         donation.setProject(project);
         donation.setUser(user);
         donation.setAmount(request.getAmount());
@@ -57,7 +56,6 @@ public class DonationServiceImpl implements DonationService {
 
         // 2. Lưu Transaction trạng thái Pending (2)
         Transaction transaction = new Transaction();
-        transaction.setTransactionId(UUID.randomUUID().toString());
         transaction.setDonation(donation);
         transaction.setAmount(request.getAmount());
         transaction.setGatewayName("VNPAY");

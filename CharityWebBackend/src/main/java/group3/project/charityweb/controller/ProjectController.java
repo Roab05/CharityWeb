@@ -24,9 +24,12 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<?> createProject(Principal principal, @RequestBody CreateProjectRequest request) {
-        projectService.createProject(principal.getName(), request);
+        String projectId = projectService.createProject(principal.getName(), request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Tạo dự án thành công, vui lòng chờ Admin phê duyệt."));
+                .body(Map.of(
+                        "message", "Tạo dự án thành công, vui lòng chờ Admin phê duyệt.",
+                        "id", projectId
+                ));
     }
 
     @GetMapping
@@ -49,9 +52,12 @@ public class ProjectController {
     public ResponseEntity<?> createActivity(Principal principal,
                                             @PathVariable String projectId,
                                             @RequestBody ActivityRequest request) {
-        projectService.createActivity(principal.getName(), projectId, request);
+        String activityId = projectService.createActivity(principal.getName(), projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Đã cập nhật tiến độ dự án."));
+                .body(Map.of(
+                        "message", "Đã cập nhật tiến độ dự án.",
+                        "id", activityId
+                ));
     }
 
     @GetMapping("/{projectId}/activities")

@@ -2,6 +2,7 @@ package group3.project.charityweb.service;
 
 import group3.project.charityweb.model.dto.request.CategoryRequest;
 import group3.project.charityweb.model.dto.request.UpdateStatusRequest;
+import group3.project.charityweb.model.dto.response.DisbursementResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.dto.response.SystemStatisticsResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
@@ -19,6 +20,9 @@ public interface AdminService {
 
     void updateUserStatus(String userId, UpdateStatusRequest request);
 
-    void createCategory(CategoryRequest request);
+    String createCategory(CategoryRequest request);
     void updateCategory(String categoryId, CategoryRequest request);
+
+    List<DisbursementResponse> getPendingDisbursements();
+    void updateDisbursementStatus(String disbursementId, UpdateStatusRequest request);
 }

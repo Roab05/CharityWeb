@@ -1,22 +1,22 @@
 package group3.project.charityweb.service.impl;
 
 import group3.project.charityweb.exception.DuplicateResourceException;
+import group3.project.charityweb.exception.InvalidDisbursementException;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.model.dto.request.CategoryRequest;
 import group3.project.charityweb.model.dto.request.UpdateStatusRequest;
+import group3.project.charityweb.model.dto.response.DisbursementResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.dto.response.SystemStatisticsResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
-import group3.project.charityweb.model.entity.Account;
-import group3.project.charityweb.model.entity.Organization;
-import group3.project.charityweb.model.entity.Project;
-import group3.project.charityweb.model.entity.ProjectCategory;
+import group3.project.charityweb.model.entity.*;
 import group3.project.charityweb.repository.*;
 import group3.project.charityweb.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +29,7 @@ public class AdminServiceImpl implements AdminService {
     private final OrganizationRepository organizationRepository;
     private final AccountRepository accountRepository;
     private final ProjectCategoryRepository categoryRepository;
+    private final DisbursementRepository disbursementRepository;
 
     @Override
     public SystemStatisticsResponse getStatistics() {
@@ -101,7 +102,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void createCategory(CategoryRequest request) {
+    public String createCategory(CategoryRequest request) {
         if (categoryRepository.existsById(request.getId())) {
             throw new DuplicateResourceException("Mã danh mục đã tồn tại!");
         }
@@ -110,6 +111,7 @@ public class AdminServiceImpl implements AdminService {
         category.setCategoryName(request.getCategoryName());
         category.setDescription(request.getDescription());
         categoryRepository.save(category);
+        return category.getId();
     }
 
     @Override
@@ -120,5 +122,64 @@ public class AdminServiceImpl implements AdminService {
         category.setCategoryName(request.getCategoryName());
         category.setDescription(request.getDescription());
         categoryRepository.save(category);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DisbursementResponse> getPendingDisbursements() {
+        return disbursementRepository.findAllByStatus(0).stream()
+                .map(this::mapToDisbursementResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    public void updateDisbursementStatus(String disbursementId, UpdateStatusRequest request) {
+        // 1. Tìm bản ghi giải ngân
+        Disbursement disbursement = disbursementRepository.findById(disbursementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu giải ngân với ID: " + disbursementId));
+
+        // 2. Nếu đã xử lý rồi (khác PENDING) thì không cho sửa nữa để tránh ghi đè dữ liệu
+        if (disbursement.getStatus() != 0) {
+            throw new InvalidDisbursementException("Yêu cầu giải ngân này đã được xử lý trước đó.");
+        }
+
+        // 3. Xử lý logic theo trạng thái mới
+        if (request.getStatus() == 1) { // Duyệt giải ngân
+            Project project = disbursement.getProject();
+
+            // KIỂM TRA SỐ DƯ: Đảm bảo số tiền rút không lớn hơn số tiền dự án đang có
+            if (project.getCurrentAmount().compareTo(disbursement.getAmount()) < 0) {
+                throw new InvalidDisbursementException("Số dư dự án không đủ để thực hiện giải ngân này.");
+            }
+
+            // THỰC HIỆN TRỪ TIỀN: Cập nhật lại số tiền hiện tại của dự án
+            project.setCurrentAmount(project.getCurrentAmount().subtract(disbursement.getAmount()));
+
+            disbursement.setStatus(1); // Duyệt
+            disbursement.setDisbursementTime(LocalDateTime.now()); // Ghi nhận thời gian tiền đi
+
+            projectRepository.save(project);
+        } else if (request.getStatus() == 2) { // Từ chối giải ngân
+            disbursement.setStatus(2); // Thất bại/Từ chối
+        } else {
+            throw new InvalidDisbursementException("Trạng thái cập nhật không hợp lệ.");
+        }
+
+        disbursementRepository.save(disbursement);
+    }
+
+    // Hàm helper để convert Entity sang DTO
+    private DisbursementResponse mapToDisbursementResponse(Disbursement entity) {
+        return DisbursementResponse.builder()
+                .disbursementId(entity.getDisbursementId()) //
+                .projectId(entity.getProject().getProjectId()) //
+                .amount(entity.getAmount()) //
+                .disbursementTime(entity.getDisbursementTime()) //
+                .reason(entity.getReason()) //
+                .evidenceURL(entity.getEvidenceURL()) //
+                .recipientInfo(entity.getRecipientInfo()) //
+                .status(entity.getStatus()) //
+                .build();
     }
 }

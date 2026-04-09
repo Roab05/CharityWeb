@@ -16,6 +16,9 @@ public class ProjectActivity {
     @Column(name = "activity_id")
     private String activityId;
 
+    @Column(name = "title")
+    private String title;
+
     @Column(name = "content", columnDefinition = "TEXT")
     private String content;
 

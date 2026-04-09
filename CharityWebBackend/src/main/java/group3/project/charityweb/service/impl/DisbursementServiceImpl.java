@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,7 +26,6 @@ public class DisbursementServiceImpl implements DisbursementService {
     private final DisbursementRepository disbursementRepository;
     private final ProjectRepository projectRepository;
 
-    // --- Mapper ---
     private DisbursementResponse mapToResponse(Disbursement entity) {
         return DisbursementResponse.builder()
                 .disbursementId(entity.getDisbursementId())
@@ -43,21 +41,19 @@ public class DisbursementServiceImpl implements DisbursementService {
 
     @Override
     @Transactional
-    public void createDisbursement(String username, String projectId, DisbursementRequest request) {
+    public String createDisbursement(String username, String projectId, DisbursementRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dự án!"));
 
-        // 1. Kiểm tra quyền sở hữu dự án
         boolean isOwner = project.getOrganizations().stream()
                 .anyMatch(org -> org.getUsername().equals(username));
         if (!isOwner) {
             throw new UnauthorizedAccessException("Bạn không có quyền giải ngân cho dự án này!");
         }
 
-        // 2. Logic tính toán đối soát tài chính
-        BigDecimal totalReceived = project.getCurrentAmount(); // Tổng tiền đã quyên góp được
-        BigDecimal totalDisbursed = disbursementRepository.sumDisbursedAmountByProjectId(projectId); // Tổng tiền đã chi
-        BigDecimal availableBalance = totalReceived.subtract(totalDisbursed); // Số dư khả dụng
+        BigDecimal totalReceived = project.getCurrentAmount();
+        BigDecimal totalDisbursed = disbursementRepository.sumDisbursedAmountByProjectId(projectId);
+        BigDecimal availableBalance = totalReceived.subtract(totalDisbursed);
 
         if (request.getAmount().compareTo(availableBalance) > 0) {
             throw new InvalidDisbursementException(
@@ -66,9 +62,7 @@ public class DisbursementServiceImpl implements DisbursementService {
             );
         }
 
-        // 3. Tạo bản ghi giải ngân
         Disbursement disbursement = new Disbursement();
-        disbursement.setDisbursementId(UUID.randomUUID().toString());
         disbursement.setProject(project);
         disbursement.setAmount(request.getAmount());
         disbursement.setDisbursementTime(LocalDateTime.now());
@@ -76,10 +70,11 @@ public class DisbursementServiceImpl implements DisbursementService {
         disbursement.setEvidenceURL(request.getEvidenceURL());
         disbursement.setRecipientInfo(request.getRecipientInfo());
 
-        // Trạng thái: 1 = Hợp lệ (Sau này bạn có thể set = 2 (Pending) nếu muốn làm hệ thống AI OCR Admin check trước khi hiển thị)
-        disbursement.setStatus(1);
+        disbursement.setStatus(0);
 
         disbursementRepository.save(disbursement);
+
+        return disbursement.getDisbursementId();
     }
 
     @Override

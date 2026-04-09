@@ -63,9 +63,12 @@ public class AdminController {
     // 7. Thêm mới danh mục dự án
     @PostMapping("/categories")
     public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
-        adminService.createCategory(request);
+        String categoryId = adminService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Đã tạo danh mục dự án mới."));
+                .body(Map.of(
+                        "message", "Đã tạo danh mục dự án mới.",
+                        "id", categoryId
+                ));
     }
 
     // 8. Chỉnh sửa danh mục dự án
@@ -73,5 +76,26 @@ public class AdminController {
     public ResponseEntity<?> updateCategory(@PathVariable String categoryId, @RequestBody CategoryRequest request) {
         adminService.updateCategory(categoryId, request);
         return ResponseEntity.ok(Map.of("message", "Đã cập nhật danh mục dự án."));
+    }
+
+    // ... (Các import cũ giữ nguyên)
+    // Nhớ import thêm class Response của bạn, ví dụ:
+    // import group3.project.charityweb.model.dto.response.DisbursementResponse;
+
+    // 9. Lấy danh sách yêu cầu giải ngân chờ duyệt
+    @GetMapping("/disbursements/pending")
+    public ResponseEntity<List<DisbursementResponse>> getPendingDisbursements() {
+        return ResponseEntity.ok(adminService.getPendingDisbursements());
+    }
+
+    // 10. Phê duyệt hoặc Từ chối yêu cầu giải ngân
+    @PutMapping("/disbursements/{disbursementId}/status")
+    public ResponseEntity<?> updateDisbursementStatus(
+            @PathVariable String disbursementId,
+            @RequestBody UpdateStatusRequest request) {
+
+        adminService.updateDisbursementStatus(disbursementId, request);
+
+        return ResponseEntity.ok(Map.of("message", "Đã cập nhật trạng thái yêu cầu giải ngân."));
     }
 }

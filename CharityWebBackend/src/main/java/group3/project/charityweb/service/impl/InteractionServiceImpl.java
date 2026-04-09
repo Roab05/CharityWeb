@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,7 +27,7 @@ public class InteractionServiceImpl implements InteractionService {
 
     @Override
     @Transactional
-    public void createInteraction(String username, String activityId, InteractionRequest request) {
+    public String createInteraction(String username, String activityId, InteractionRequest request) {
         ProjectActivity activity = activityRepository.findById(activityId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng cập nhật!"));
 
@@ -36,7 +35,6 @@ public class InteractionServiceImpl implements InteractionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không hợp lệ"));
 
         ActivityInteraction interaction = new ActivityInteraction();
-        interaction.setInteractionId(UUID.randomUUID().toString());
         interaction.setActivity(activity);
         interaction.setUser(user);
         interaction.setType(request.getType());
@@ -44,6 +42,8 @@ public class InteractionServiceImpl implements InteractionService {
         interaction.setCreatedAt(LocalDateTime.now());
 
         interactionRepository.save(interaction);
+
+        return interaction.getInteractionId();
     }
 
     @Override

@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class ActivityResponse {
     private String activityId;
+    private String title;
     private String content;
     private String imageURL;
 }

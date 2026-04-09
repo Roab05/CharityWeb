@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
         return donations.stream().map(donation -> DonationHistoryResponse.builder()
                 .donationId(donation.getDonationId())
                 .projectId(donation.getProject().getProjectId())
-                .projectName(donation.getProject().getDescription()) // Giả sử dùng description làm tên ngắn, bạn có thể thiết kế thêm trường projectName trong Project nếu cần
+                .projectName(donation.getProject().getProjectName())
                 .amount(donation.getAmount())
                 .donationTime(donation.getDonationTime())
                 .message(donation.getMessage())

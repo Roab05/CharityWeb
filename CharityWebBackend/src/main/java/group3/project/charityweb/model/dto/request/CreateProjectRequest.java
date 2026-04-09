@@ -7,6 +7,7 @@ import java.util.List;
 
 @Data
 public class CreateProjectRequest {
+    private String projectName;
     private String description;
     private BigDecimal targetAmount;
     private LocalDate startDate;

@@ -26,10 +26,13 @@ public class DisbursementController {
             @PathVariable String projectId,
             @RequestBody DisbursementRequest request) {
 
-        disbursementService.createDisbursement(principal.getName(), projectId, request);
+        String disbursementId = disbursementService.createDisbursement(principal.getName(), projectId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Tạo hồ sơ giải ngân thành công."));
+                .body(Map.of(
+                        "message", "Tạo hồ sơ giải ngân thành công.",
+                        "id", disbursementId
+                ));
     }
 
     // 2. Xem danh sách sao kê của dự án (GET /api/v1/projects/{projectId}/disbursements)

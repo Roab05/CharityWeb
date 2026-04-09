@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class ActivityRequest {
+    private String title;
     private String content;
     private String imageURL;
 }

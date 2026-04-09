@@ -21,6 +21,9 @@ public class Project {
     @Column(name = "project_id")
     private String projectId;
 
+    @Column(name = "project_name")
+    private String projectName;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

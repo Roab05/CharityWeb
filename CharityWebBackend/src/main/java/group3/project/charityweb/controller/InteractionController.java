@@ -26,10 +26,13 @@ public class InteractionController {
             @PathVariable String activityId,
             @RequestBody InteractionRequest request) {
 
-        interactionService.createInteraction(principal.getName(), activityId, request);
+        String interactionId = interactionService.createInteraction(principal.getName(), activityId, request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("message", "Đã gửi tương tác thành công."));
+                .body(Map.of(
+                        "message", "Đã gửi tương tác thành công.",
+                        "id", interactionId
+                ));
     }
 
     // 2. Lấy danh sách bình luận (GET /api/v1/activities/{activityId}/interactions)

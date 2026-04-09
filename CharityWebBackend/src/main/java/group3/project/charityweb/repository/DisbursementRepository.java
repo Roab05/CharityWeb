@@ -16,4 +16,6 @@ public interface DisbursementRepository extends JpaRepository<Disbursement, Stri
 
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Disbursement d WHERE d.project.projectId = :projectId AND d.status = 1")
     BigDecimal sumDisbursedAmountByProjectId(@Param("projectId") String projectId);
+
+    List<Disbursement> findAllByStatus(Integer status);
 }

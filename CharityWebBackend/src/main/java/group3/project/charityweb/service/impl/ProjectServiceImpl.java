@@ -37,12 +37,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     // 1. Tạo dự án mới (Tổ chức)
     @Transactional
-    public void createProject(String username, CreateProjectRequest request) {
+    public String createProject(String username, CreateProjectRequest request) {
         Organization org = organizationRepository.findByUsername(username)
                 .orElseThrow(() -> new UnauthorizedAccessException("Tài khoản không phải Tổ chức!"));
 
         Project project = new Project();
-        project.setProjectId(UUID.randomUUID().toString()); // Sinh ID nếu bạn chưa set Auto Generate trong Entity
+        project.setProjectName(request.getProjectName());
         project.setCreatedAt(LocalDateTime.now());
         project.setStartDate(request.getStartDate());
         project.setEndDate(request.getEndDate());
@@ -61,6 +61,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setOrganizations(List.of(org));
 
         projectRepository.save(project);
+        return project.getProjectId();
     }
 
     // 2. Lấy danh sách dự án (Public - Có phân trang và lọc)
@@ -86,7 +87,7 @@ public class ProjectServiceImpl implements ProjectService {
 
     // 4. Đăng cập nhật tiến độ
     @Transactional
-    public void createActivity(String username, String projectId, ActivityRequest request) {
+    public String createActivity(String username, String projectId, ActivityRequest request) {
         Project project = getProjectEntityById(projectId); // Dùng hàm private gọi entity
 
         boolean isOwner = project.getOrganizations().stream()
@@ -97,12 +98,13 @@ public class ProjectServiceImpl implements ProjectService {
         }
 
         ProjectActivity activity = new ProjectActivity();
-        activity.setActivityId(UUID.randomUUID().toString());
+        activity.setTitle(request.getTitle());
         activity.setContent(request.getContent());
         activity.setImageURL(request.getImageURL());
         activity.setProject(project);
 
         activityRepository.save(activity);
+        return activity.getActivityId();
     }
 
     // 5. Lấy dòng thời gian hoạt động của dự án
@@ -121,6 +123,7 @@ public class ProjectServiceImpl implements ProjectService {
     private ProjectResponse mapToProjectResponse(Project project) {
         return ProjectResponse.builder()
                 .projectId(project.getProjectId())
+                .projectName(project.getProjectName())
                 .createdAt(project.getCreatedAt())
                 .startDate(project.getStartDate())
                 .endDate(project.getEndDate())
@@ -142,6 +145,7 @@ public class ProjectServiceImpl implements ProjectService {
     private ActivityResponse mapToActivityResponse(ProjectActivity activity) {
         return ActivityResponse.builder()
                 .activityId(activity.getActivityId())
+                .title(activity.getTitle())
                 .content(activity.getContent())
                 .imageURL(activity.getImageURL())
                 .build();
