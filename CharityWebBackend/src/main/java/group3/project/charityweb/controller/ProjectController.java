@@ -4,6 +4,8 @@ import group3.project.charityweb.model.dto.request.ActivityRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
+import group3.project.charityweb.model.enums.ProjectStatus;
+import group3.project.charityweb.service.ActivityService;
 import group3.project.charityweb.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class ProjectController {
 
     private final ProjectService projectService;
+    private final ActivityService activityService;
 
     @PostMapping
     public ResponseEntity<?> createProject(Principal principal, @RequestBody CreateProjectRequest request) {
@@ -34,7 +37,7 @@ public class ProjectController {
 
     @GetMapping
     public ResponseEntity<Page<ProjectResponse>> getProjects(
-            @RequestParam(required = false, defaultValue = "1") Integer status,
+            @RequestParam(required = false, defaultValue = "ACTIVE") ProjectStatus status,
             @RequestParam(required = false) String categoryId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -52,7 +55,7 @@ public class ProjectController {
     public ResponseEntity<?> createActivity(Principal principal,
                                             @PathVariable String projectId,
                                             @RequestBody ActivityRequest request) {
-        String activityId = projectService.createActivity(principal.getName(), projectId, request);
+        String activityId = activityService.createActivity(principal.getName(), projectId, request);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "message", "Đã cập nhật tiến độ dự án.",
@@ -62,7 +65,7 @@ public class ProjectController {
 
     @GetMapping("/{projectId}/activities")
     public ResponseEntity<List<ActivityResponse>> getActivities(@PathVariable String projectId) {
-        List<ActivityResponse> activities = projectService.getProjectActivities(projectId);
+        List<ActivityResponse> activities = activityService.getProjectActivities(projectId);
         return ResponseEntity.ok(activities);
     }
 }

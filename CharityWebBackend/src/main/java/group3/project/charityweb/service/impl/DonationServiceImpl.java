@@ -5,6 +5,8 @@ import group3.project.charityweb.model.dto.request.DonationRequest;
 import group3.project.charityweb.model.dto.response.DonationResponse;
 import group3.project.charityweb.model.dto.response.PaymentUrlResponse;
 import group3.project.charityweb.model.entity.*;
+import group3.project.charityweb.model.enums.DonationStatus;
+import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.DonationRepository;
 import group3.project.charityweb.repository.ProjectRepository;
@@ -18,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,7 +30,7 @@ public class DonationServiceImpl implements DonationService {
     private final AccountRepository accountRepository;
     private final DonationRepository donationRepository;
     private final TransactionRepository transactionRepository;
-    private final PaymentService paymentService; // Gọi sang service thanh toán
+    private final PaymentService paymentService;
 
     @Override
     @Transactional
@@ -37,32 +38,29 @@ public class DonationServiceImpl implements DonationService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy dự án!"));
 
-        if (project.getStatus() != 1) {
+        if (project.getStatus() != ProjectStatus.ACTIVE) {
             throw new RuntimeException("Dự án hiện không nhận quyên góp!");
         }
 
         User user = (User) accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không hợp lệ"));
 
-        // 1. Lưu Donation trạng thái Pending (2)
         Donation donation = new Donation();
         donation.setProject(project);
         donation.setUser(user);
         donation.setAmount(request.getAmount());
         donation.setMessage(request.getMessage());
         donation.setDonationTime(LocalDateTime.now());
-        donation.setStatus(2); // 2: Pending
+        donation.setStatus(DonationStatus.PROCESSING);
         donation = donationRepository.save(donation);
 
-        // 2. Lưu Transaction trạng thái Pending (2)
         Transaction transaction = new Transaction();
         transaction.setDonation(donation);
         transaction.setAmount(request.getAmount());
         transaction.setGatewayName("VNPAY");
-        transaction.setPaymentStatus(2); // 2: Pending
+        transaction.setPaymentStatus(2);
         transaction = transactionRepository.save(transaction);
 
-        // 3. Gọi VNPAY tạo URL
         String url = paymentService.createPaymentUrl(transaction, httpRequest);
         return new PaymentUrlResponse(url);
     }
@@ -70,7 +68,7 @@ public class DonationServiceImpl implements DonationService {
     @Override
     public List<DonationResponse> getProjectDonations(String projectId) {
         // Chỉ lấy trạng thái 1 (Thành công)
-        List<Donation> donations = donationRepository.findByProject_ProjectIdAndStatusOrderByDonationTimeDesc(projectId, 1);
+        List<Donation> donations = donationRepository.findByProject_ProjectIdAndStatusOrderByDonationTimeDesc(projectId, DonationStatus.SUCCESS);
 
         return donations.stream().map(d -> {
             String donorName = "Nhà hảo tâm ẩn danh";

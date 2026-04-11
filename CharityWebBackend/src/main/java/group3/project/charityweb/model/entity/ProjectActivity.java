@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.ActivityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -28,4 +29,8 @@ public class ProjectActivity {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private ActivityStatus status;
 }

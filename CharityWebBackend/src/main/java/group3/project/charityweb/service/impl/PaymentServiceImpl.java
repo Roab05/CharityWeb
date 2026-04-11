@@ -8,6 +8,7 @@ import group3.project.charityweb.model.entity.Donation;
 import group3.project.charityweb.model.entity.Project;
 import group3.project.charityweb.model.entity.Transaction;
 import group3.project.charityweb.model.entity.User;
+import group3.project.charityweb.model.enums.DonationStatus;
 import group3.project.charityweb.repository.DonationRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import group3.project.charityweb.repository.TransactionRepository;
@@ -105,7 +106,7 @@ public class PaymentServiceImpl implements PaymentService {
             transaction.setGatewayTransactionNo(vnp_TransactionNo);
 
             Donation donation = transaction.getDonation();
-            donation.setStatus(1); // 1 = Thành công
+            donation.setStatus(DonationStatus.SUCCESS); // 1 = Thành công
 
             // Nghiệp vụ cốt lõi: Đồng bộ cộng tiền
             Project project = donation.getProject();
@@ -120,7 +121,7 @@ public class PaymentServiceImpl implements PaymentService {
             transactionRepository.save(transaction);
         } else {
             transaction.setPaymentStatus(0);
-            transaction.getDonation().setStatus(0);
+            transaction.getDonation().setStatus(DonationStatus.FAILED);
 
             transactionRepository.save(transaction);
 

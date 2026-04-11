@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.dto.response;
 
+import group3.project.charityweb.model.enums.AccountStatus;
 import lombok.Builder;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -10,7 +11,7 @@ public class UserProfileResponse {
     private String accountId;
     private String username;
     private String roleType; // ADMIN, INDIVIDUAL, ORGANIZATION
-    private Integer status;
+    private AccountStatus status;
 
     // Thuộc tính chung của User
     private String email;

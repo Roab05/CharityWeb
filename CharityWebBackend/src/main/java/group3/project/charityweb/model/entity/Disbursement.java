@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.DisbursementStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,8 +31,9 @@ public class Disbursement {
     @Column(name = "evidence_url")
     private String evidenceURL;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Integer status;
+    private DisbursementStatus status;
 
     @Column(name = "recipient_info")
     private String recipientInfo;

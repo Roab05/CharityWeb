@@ -14,6 +14,11 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -46,15 +51,34 @@ public class SecurityConfig {
 
                         // 3. ORGANIZATION APIs
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/activities/**").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/activities/**").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/disbursements").hasAuthority("ROLE_ORGANIZATION")
 
                         // 4. Các API còn lại yêu cầu đăng nhập
                         .anyRequest().authenticated()
                 );
 
-        // Filter được inject thẳng từ tham số hàm vào đây
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(List.of("http://localhost:3000"));
+
+        configuration.setAllowCredentials(true);
+
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "Accept"));
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Áp dụng cho mọi API
+        return source;
     }
 }

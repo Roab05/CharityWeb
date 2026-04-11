@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -27,6 +28,7 @@ public class Account {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Integer status; // 1: Active, 0: Banned, 2: Pending
+    private AccountStatus status;
 }

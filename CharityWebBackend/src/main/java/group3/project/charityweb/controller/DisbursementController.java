@@ -19,7 +19,6 @@ public class DisbursementController {
 
     private final DisbursementService disbursementService;
 
-    // 1. Tạo hồ sơ giải ngân mới (POST /api/v1/projects/{projectId}/disbursements)
     @PostMapping("/projects/{projectId}/disbursements")
     public ResponseEntity<?> createDisbursement(
             Principal principal,
@@ -35,14 +34,12 @@ public class DisbursementController {
                 ));
     }
 
-    // 2. Xem danh sách sao kê của dự án (GET /api/v1/projects/{projectId}/disbursements)
     @GetMapping("/projects/{projectId}/disbursements")
     public ResponseEntity<List<DisbursementResponse>> getProjectDisbursements(@PathVariable String projectId) {
         List<DisbursementResponse> responses = disbursementService.getProjectDisbursements(projectId);
         return ResponseEntity.ok(responses);
     }
 
-    // 3. Xem chi tiết một khoản giải ngân (GET /api/v1/disbursements/{disbursementId})
     @GetMapping("/disbursements/{disbursementId}")
     public ResponseEntity<DisbursementResponse> getDisbursementDetails(@PathVariable String disbursementId) {
         DisbursementResponse response = disbursementService.getDisbursementById(disbursementId);

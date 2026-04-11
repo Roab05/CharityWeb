@@ -1,6 +1,7 @@
 package group3.project.charityweb.config;
 
 import group3.project.charityweb.model.entity.Admin;
+import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ public class DataSeeder {
                 Admin admin = new Admin();
                 admin.setUsername("admin");
                 admin.setPassword(passwordEncoder.encode("admin123"));
-                admin.setStatus(1); // 1 = Active
+                admin.setStatus(AccountStatus.ACTIVE); // 1 = Active
                 admin.setCreatedAt(LocalDateTime.now());
                 admin.setAdminLevel("SUPER_ADMIN");
 

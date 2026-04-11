@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.dto.response;
 
+import group3.project.charityweb.model.enums.DisbursementStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,5 +17,5 @@ public class DisbursementResponse {
     private String reason;
     private String evidenceURL;
     private String recipientInfo;
-    private Integer status;
+    private DisbursementStatus status;
 }

@@ -1,6 +1,7 @@
 package group3.project.charityweb.repository;
 
 import group3.project.charityweb.model.entity.Project;
+import group3.project.charityweb.model.enums.ProjectStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,8 +11,8 @@ import java.util.List;
 
 @Repository
 public interface ProjectRepository extends JpaRepository<Project, String> {
-    Page<Project> findByStatus(Integer status, Pageable pageable);
-    Page<Project> findByStatusAndCategories_Id(Integer status, String categoryId, Pageable pageable);
-    List<Project> findByStatusOrderByCreatedAtDesc(Integer status);
-    long countByStatus(Integer status);
+    Page<Project> findByStatus(ProjectStatus status, Pageable pageable);
+    Page<Project> findByStatusAndCategories_Id(ProjectStatus status, String categories_id, Pageable pageable);
+    List<Project> findByStatusOrderByCreatedAtDesc(ProjectStatus status);
+    long countByStatus(ProjectStatus status);
 }

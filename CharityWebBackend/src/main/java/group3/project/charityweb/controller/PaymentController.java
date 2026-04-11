@@ -17,7 +17,6 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    // GET /api/v1/payments/callback
     @GetMapping("/callback")
     public ResponseEntity<?> vnpayCallback(HttpServletRequest request) {
         paymentService.processCallback(request);

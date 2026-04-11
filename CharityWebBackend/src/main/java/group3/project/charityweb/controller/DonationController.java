@@ -19,13 +19,12 @@ public class DonationController {
 
     private final DonationService donationService;
 
-    // POST /api/v1/projects/{projectId}/donations
     @PostMapping("/{projectId}/donations")
     public ResponseEntity<PaymentUrlResponse> createDonation(
             Principal principal,
             @PathVariable String projectId,
             @RequestBody DonationRequest request,
-            HttpServletRequest httpRequest) { // Lấy httpRequest để truyền IP vào VNPAY
+            HttpServletRequest httpRequest) {
         PaymentUrlResponse response = donationService.initiateDonation(principal.getName(), projectId, request, httpRequest);
         return ResponseEntity.ok(response);
     }

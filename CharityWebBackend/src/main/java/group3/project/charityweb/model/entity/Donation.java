@@ -1,8 +1,8 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.DonationStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -28,8 +28,9 @@ public class Donation {
     @Column(name = "amount", precision = 19, scale = 4)
     private BigDecimal amount;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Integer status;
+    private DonationStatus status;
 
     @ManyToOne
     @JoinColumn(name = "project_id")

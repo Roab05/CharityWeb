@@ -1,5 +1,6 @@
 package group3.project.charityweb.controller;
 
+import group3.project.charityweb.model.dto.request.ChangePasswordRequest;
 import group3.project.charityweb.model.dto.request.UpdateProfileRequest;
 import group3.project.charityweb.model.dto.response.DonationHistoryResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
@@ -35,5 +36,11 @@ public class UserController {
     public ResponseEntity<List<DonationHistoryResponse>> getMyDonations(Principal principal) {
         List<DonationHistoryResponse> responses = userService.getMyDonations(principal.getName());
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(Principal principal, @RequestBody ChangePasswordRequest request) {
+        userService.changePassword(principal.getName(), request);
+        return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công."));
     }
 }

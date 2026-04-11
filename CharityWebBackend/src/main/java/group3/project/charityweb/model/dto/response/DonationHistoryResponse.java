@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.dto.response;
 
+import group3.project.charityweb.model.enums.DonationStatus;
 import lombok.Builder;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -14,5 +15,5 @@ public class DonationHistoryResponse {
     private BigDecimal amount;
     private LocalDateTime donationTime;
     private String message;
-    private Integer status;
+    private DonationStatus status;
 }

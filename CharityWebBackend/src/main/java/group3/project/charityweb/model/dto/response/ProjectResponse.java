@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.dto.response;
 
+import group3.project.charityweb.model.enums.ProjectStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,7 +20,7 @@ public class ProjectResponse {
     private String description;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
-    private Integer status;
+    private ProjectStatus status;
     private String backgroundImageURL;
     private String bankAccountNo;
 

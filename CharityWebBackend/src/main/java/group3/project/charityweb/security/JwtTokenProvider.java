@@ -20,30 +20,53 @@ public class JwtTokenProvider {
     private String jwtSecret;
 
     @Value("${app.jwt.expiration}")
-    private int jwtExpirationMs;
+    private int jwtExpirationMs; // Dành cho Access Token (VD: 15 phút)
+
+    @Value("${app.jwt.refreshExpiration}") // 👈 THÊM DÒNG NÀY
+    private int refreshExpirationMs; // Dành cho Refresh Token (VD: 7 ngày)
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    // Tạo token từ thông tin UserDetails
-    public String generateToken(Authentication authentication) {
+    // 1. Tạo Access Token (Sống 15 phút) dùng khi Đăng nhập
+    public String generateAccessToken(Authentication authentication) {
         UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationMs);
-
-        // Lấy danh sách quyền (Roles) chuyển thành chuỗi
         List<String> roles = userPrincipal.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return Jwts.builder()
-                .setSubject(userPrincipal.getUsername())
-                .claim("roles", roles) // Lưu quyền vào Claim "roles"
+        return buildToken(userPrincipal.getUsername(), roles, jwtExpirationMs);
+    }
+
+    // 2. Tạo Access Token MỚI từ Username (Dùng khi Refresh Token)
+    public String generateAccessTokenFromUsername(String username) {
+        return buildToken(username, null, jwtExpirationMs);
+    }
+
+    // 3. Tạo Refresh Token (Sống 7 ngày)
+    public String generateRefreshToken(Authentication authentication) {
+        UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
+        // Refresh Token không cần lưu Role cho nhẹ, chỉ cần lưu Username
+        return buildToken(userPrincipal.getUsername(), null, refreshExpirationMs);
+    }
+
+    // Hàm helper dùng chung để build token cho gọn code
+    private String buildToken(String username, List<String> roles, int expiration) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + expiration);
+
+        JwtBuilder builder = Jwts.builder()
+                .setSubject(username)
                 .setIssuedAt(now)
                 .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256);
+
+        if (roles != null && !roles.isEmpty()) {
+            builder.claim("roles", roles);
+        }
+
+        return builder.compact();
     }
 
     // Lấy username từ token

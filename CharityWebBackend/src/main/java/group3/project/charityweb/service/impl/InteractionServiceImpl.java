@@ -5,6 +5,7 @@ import group3.project.charityweb.exception.UnauthorizedAccessException;
 import group3.project.charityweb.model.dto.request.InteractionRequest;
 import group3.project.charityweb.model.dto.response.InteractionResponse;
 import group3.project.charityweb.model.entity.*;
+import group3.project.charityweb.model.enums.InteractionType;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.ActivityInteractionRepository;
 import group3.project.charityweb.repository.ProjectActivityRepository;
@@ -38,7 +39,7 @@ public class InteractionServiceImpl implements InteractionService {
         interaction.setActivity(activity);
         interaction.setUser(user);
         interaction.setType(request.getType());
-        interaction.setContent(request.getType() == 1 ? request.getContent() : null); // Nếu là Like (2) thì không cần content
+        interaction.setContent(request.getType() == InteractionType.COMMENT ? request.getContent() : null); // Nếu là Like thì không cần content
         interaction.setCreatedAt(LocalDateTime.now());
 
         interactionRepository.save(interaction);
@@ -55,7 +56,6 @@ public class InteractionServiceImpl implements InteractionService {
         List<ActivityInteraction> interactions = interactionRepository.findByActivity_ActivityIdOrderByCreatedAtDesc(activityId);
 
         return interactions.stream().map(interaction -> {
-            // Lấy tên hiển thị dựa vào loại User
             String displayName = "Người dùng ẩn danh";
             if (interaction.getUser() instanceof Individual ind) {
                 displayName = ind.getFullName();
@@ -81,7 +81,6 @@ public class InteractionServiceImpl implements InteractionService {
         ActivityInteraction interaction = interactionRepository.findById(interactionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tương tác/bình luận!"));
 
-        // CỰC KỲ QUAN TRỌNG: Chỉ cho phép xóa nếu người đang request chính là chủ nhân của bình luận
         if (!interaction.getUser().getUsername().equals(username)) {
             throw new UnauthorizedAccessException("Bạn không có quyền xóa bình luận của người khác!");
         }

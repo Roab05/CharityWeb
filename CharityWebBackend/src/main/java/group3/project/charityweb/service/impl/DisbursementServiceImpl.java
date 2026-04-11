@@ -7,6 +7,7 @@ import group3.project.charityweb.model.dto.request.DisbursementRequest;
 import group3.project.charityweb.model.dto.response.DisbursementResponse;
 import group3.project.charityweb.model.entity.Disbursement;
 import group3.project.charityweb.model.entity.Project;
+import group3.project.charityweb.model.enums.DisbursementStatus;
 import group3.project.charityweb.repository.DisbursementRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import group3.project.charityweb.service.DisbursementService;
@@ -52,7 +53,7 @@ public class DisbursementServiceImpl implements DisbursementService {
         }
 
         BigDecimal totalReceived = project.getCurrentAmount();
-        BigDecimal totalDisbursed = disbursementRepository.sumDisbursedAmountByProjectId(projectId);
+        BigDecimal totalDisbursed = disbursementRepository.sumDisbursedAmountByProjectId(projectId, DisbursementStatus.APPROVED);
         BigDecimal availableBalance = totalReceived.subtract(totalDisbursed);
 
         if (request.getAmount().compareTo(availableBalance) > 0) {
@@ -70,7 +71,7 @@ public class DisbursementServiceImpl implements DisbursementService {
         disbursement.setEvidenceURL(request.getEvidenceURL());
         disbursement.setRecipientInfo(request.getRecipientInfo());
 
-        disbursement.setStatus(0);
+        disbursement.setStatus(DisbursementStatus.PENDING);
 
         disbursementRepository.save(disbursement);
 

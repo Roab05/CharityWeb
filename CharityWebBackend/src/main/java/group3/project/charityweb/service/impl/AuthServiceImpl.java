@@ -6,12 +6,14 @@ import group3.project.charityweb.model.dto.request.RegisterIndivRequest;
 import group3.project.charityweb.model.dto.request.RegisterOrgRequest;
 import group3.project.charityweb.model.entity.Individual;
 import group3.project.charityweb.model.entity.Organization;
+import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.IndividualRepository;
 import group3.project.charityweb.repository.OrganizationRepository;
 import group3.project.charityweb.repository.UserRepository;
 import group3.project.charityweb.security.JwtTokenProvider;
 import group3.project.charityweb.service.AuthService;
+import group3.project.charityweb.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -32,10 +35,10 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserService userService;
 
-    // Logic Đăng ký Cá nhân
+    @Override
     public String registerIndividual(RegisterIndivRequest request) {
-        // 1. Kiểm tra tồn tại
         if (accountRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Tên đăng nhập đã tồn tại!");
         }
@@ -47,7 +50,6 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateResourceException("Số điện thoại này đã được một tài khoản Cá nhân khác sử dụng!");
         }
 
-        // 2. Map DTO sang Entity
         Individual individual = new Individual();
         individual.setUsername(request.getUsername());
         individual.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -56,7 +58,7 @@ public class AuthServiceImpl implements AuthService {
         individual.setFullName(request.getFullName());
         individual.setAddress(request.getAddress());
 
-        individual.setStatus(1);
+        individual.setStatus(AccountStatus.ACTIVE);
         individual.setCreatedAt(LocalDateTime.now());
 
         individualRepository.save(individual);
@@ -64,8 +66,8 @@ public class AuthServiceImpl implements AuthService {
         return individual.getId();
     }
 
+    @Override
     public String registerOrganization(RegisterOrgRequest request) {
-        // 1. Kiểm tra tồn tại
         if (accountRepository.existsByUsername(request.getUsername())) {
             throw new DuplicateResourceException("Tên đăng nhập đã tồn tại!");
         }
@@ -77,7 +79,6 @@ public class AuthServiceImpl implements AuthService {
             throw new DuplicateResourceException("Số điện thoại này đã được một Tổ chức khác sử dụng!");
         }
 
-        // 2. Map DTO sang Entity
         Organization organization = new Organization();
         organization.setUsername(request.getUsername());
         organization.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -89,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
         organization.setPhone(request.getPhone());
         organization.setAddress(request.getAddress());
 
-        organization.setStatus(2);
+        organization.setStatus(AccountStatus.PENDING);
         organization.setCreatedAt(LocalDateTime.now());
 
         organizationRepository.save(organization);
@@ -97,12 +98,33 @@ public class AuthServiceImpl implements AuthService {
         return organization.getId();
     }
 
-    // Logic Đăng nhập & Tạo Token
-    public String authenticate(LoginRequest request) {
+    @Override
+    public Map<String, Object> authenticate(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
         );
 
-        return jwtTokenProvider.generateToken(authentication);
+        // 2. Sinh ra cặp Token
+        String accessToken = jwtTokenProvider.generateAccessToken(authentication);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
+
+        Object userProfile = userService.getMyProfile(request.getUsername());
+
+        return Map.of(
+                "accessToken", accessToken,
+                "refreshToken", refreshToken,
+                "userProfile", userProfile
+        );
+    }
+
+    @Override
+    public String refreshAccessToken(String refreshToken) {
+        if (!jwtTokenProvider.validateJwtToken(refreshToken)) {
+            throw new RuntimeException("Refresh Token không hợp lệ hoặc đã hết hạn. Vui lòng đăng nhập lại.");
+        }
+
+        String username = jwtTokenProvider.getUsernameFromJwtToken(refreshToken);
+
+        return jwtTokenProvider.generateAccessTokenFromUsername(username);
     }
 }

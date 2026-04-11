@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
@@ -43,8 +44,9 @@ public class Project {
     @Column(name = "current_amount", precision = 19, scale = 4)
     private BigDecimal currentAmount = BigDecimal.ZERO;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
-    private Integer status;
+    private ProjectStatus status;
 
     @Column(name = "background_image_url")
     private String backgroundImageURL;

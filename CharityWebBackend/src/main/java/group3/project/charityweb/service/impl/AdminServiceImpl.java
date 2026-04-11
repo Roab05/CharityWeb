@@ -3,13 +3,16 @@ package group3.project.charityweb.service.impl;
 import group3.project.charityweb.exception.DuplicateResourceException;
 import group3.project.charityweb.exception.InvalidDisbursementException;
 import group3.project.charityweb.exception.ResourceNotFoundException;
-import group3.project.charityweb.model.dto.request.CategoryRequest;
-import group3.project.charityweb.model.dto.request.UpdateStatusRequest;
+import group3.project.charityweb.model.dto.request.*;
 import group3.project.charityweb.model.dto.response.DisbursementResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.dto.response.SystemStatisticsResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
 import group3.project.charityweb.model.entity.*;
+import group3.project.charityweb.model.enums.AccountStatus;
+import group3.project.charityweb.model.enums.DisbursementStatus;
+import group3.project.charityweb.model.enums.DonationStatus;
+import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.repository.*;
 import group3.project.charityweb.service.AdminService;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +37,16 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public SystemStatisticsResponse getStatistics() {
         return SystemStatisticsResponse.builder()
-                .totalDonatedAmount(donationRepository.sumAllSuccessfulDonations())
-                .activeProjectsCount(projectRepository.countByStatus(1))
-                .pendingOrganizationsCount(organizationRepository.countByStatus(2))
-                .pendingProjectsCount(projectRepository.countByStatus(2))
+                .totalDonatedAmount(donationRepository.sumAllSuccessfulDonations(DonationStatus.SUCCESS))
+                .activeProjectsCount(projectRepository.countByStatus(ProjectStatus.ACTIVE))
+                .pendingOrganizationsCount(organizationRepository.countByStatus(AccountStatus.PENDING))
+                .pendingProjectsCount(projectRepository.countByStatus(ProjectStatus.PENDING))
                 .build();
     }
 
     @Override
     public List<UserProfileResponse> getPendingOrganizations() {
-        List<Organization> pendingOrgs = organizationRepository.findByStatusOrderByCreatedAtDesc(2);
+        List<Organization> pendingOrgs = organizationRepository.findByStatusOrderByCreatedAtDesc(AccountStatus.PENDING);
         return pendingOrgs.stream().map(org -> UserProfileResponse.builder()
                 .accountId(org.getId())
                 .username(org.getUsername())
@@ -60,7 +63,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void updateOrganizationStatus(String orgId, UpdateStatusRequest request) {
+    public void updateOrganizationStatus(String orgId, UpdateAccountStatusRequest request) {
         Organization org = organizationRepository.findById(orgId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tổ chức!"));
         org.setStatus(request.getStatus());
@@ -69,22 +72,24 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<ProjectResponse> getPendingProjects() {
-        List<Project> pendingProjects = projectRepository.findByStatusOrderByCreatedAtDesc(2);
+        List<Project> pendingProjects = projectRepository.findByStatusOrderByCreatedAtDesc(ProjectStatus.PENDING);
         return pendingProjects.stream().map(project -> ProjectResponse.builder()
                 .projectId(project.getProjectId())
+                .projectName(project.getProjectName())
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
                 .createdAt(project.getCreatedAt())
                 .description(project.getDescription())
                 .targetAmount(project.getTargetAmount())
                 .status(project.getStatus())
                 .organizationNames(project.getOrganizations().stream().map(Organization::getName).collect(Collectors.toList()))
-                // Bổ sung các field cần thiết khác nếu muốn
                 .build()
         ).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public void updateProjectStatus(String projectId, UpdateStatusRequest request) {
+    public void updateProjectStatus(String projectId, UpdateProjectStatusRequest request) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Dự án!"));
         project.setStatus(request.getStatus());
@@ -93,10 +98,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public void updateUserStatus(String userId, UpdateStatusRequest request) {
+    public void updateUserStatus(String userId, UpdateAccountStatusRequest request) {
         Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản người dùng!"));
-        account.setStatus(request.getStatus()); // 0 = Khóa, 1 = Mở khóa
+        account.setStatus(request.getStatus());
         accountRepository.save(account);
     }
 
@@ -107,7 +112,7 @@ public class AdminServiceImpl implements AdminService {
             throw new DuplicateResourceException("Mã danh mục đã tồn tại!");
         }
         ProjectCategory category = new ProjectCategory();
-        category.setId(request.getId()); // Hardcode ID dễ nhớ như EDU, HEALTH
+        category.setId(request.getId());
         category.setCategoryName(request.getCategoryName());
         category.setDescription(request.getDescription());
         categoryRepository.save(category);
@@ -127,41 +132,37 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional(readOnly = true)
     public List<DisbursementResponse> getPendingDisbursements() {
-        return disbursementRepository.findAllByStatus(0).stream()
+        return disbursementRepository.findAllByStatus(DisbursementStatus.PENDING).stream()
                 .map(this::mapToDisbursementResponse)
                 .toList();
     }
 
     @Override
     @Transactional
-    public void updateDisbursementStatus(String disbursementId, UpdateStatusRequest request) {
-        // 1. Tìm bản ghi giải ngân
+    public void updateDisbursementStatus(String disbursementId, UpdateDisbursementStatusRequest request) {
         Disbursement disbursement = disbursementRepository.findById(disbursementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy yêu cầu giải ngân với ID: " + disbursementId));
 
-        // 2. Nếu đã xử lý rồi (khác PENDING) thì không cho sửa nữa để tránh ghi đè dữ liệu
-        if (disbursement.getStatus() != 0) {
+        if (disbursement.getStatus() != DisbursementStatus.PENDING) {
             throw new InvalidDisbursementException("Yêu cầu giải ngân này đã được xử lý trước đó.");
         }
 
         // 3. Xử lý logic theo trạng thái mới
-        if (request.getStatus() == 1) { // Duyệt giải ngân
+        if (request.getStatus() == DisbursementStatus.PENDING) {
             Project project = disbursement.getProject();
 
-            // KIỂM TRA SỐ DƯ: Đảm bảo số tiền rút không lớn hơn số tiền dự án đang có
             if (project.getCurrentAmount().compareTo(disbursement.getAmount()) < 0) {
                 throw new InvalidDisbursementException("Số dư dự án không đủ để thực hiện giải ngân này.");
             }
 
-            // THỰC HIỆN TRỪ TIỀN: Cập nhật lại số tiền hiện tại của dự án
             project.setCurrentAmount(project.getCurrentAmount().subtract(disbursement.getAmount()));
 
-            disbursement.setStatus(1); // Duyệt
+            disbursement.setStatus(DisbursementStatus.APPROVED); // Duyệt
             disbursement.setDisbursementTime(LocalDateTime.now()); // Ghi nhận thời gian tiền đi
 
             projectRepository.save(project);
-        } else if (request.getStatus() == 2) { // Từ chối giải ngân
-            disbursement.setStatus(2); // Thất bại/Từ chối
+        } else if (request.getStatus() == DisbursementStatus.REJECTED) { // Từ chối giải ngân
+            disbursement.setStatus(DisbursementStatus.REJECTED); // Thất bại/Từ chối
         } else {
             throw new InvalidDisbursementException("Trạng thái cập nhật không hợp lệ.");
         }

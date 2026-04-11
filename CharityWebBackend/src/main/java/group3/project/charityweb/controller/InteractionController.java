@@ -19,7 +19,6 @@ public class InteractionController {
 
     private final InteractionService interactionService;
 
-    // 1. Gửi tương tác (POST /api/v1/activities/{activityId}/interactions)
     @PostMapping("/activities/{activityId}/interactions")
     public ResponseEntity<?> createInteraction(
             Principal principal,
@@ -35,14 +34,12 @@ public class InteractionController {
                 ));
     }
 
-    // 2. Lấy danh sách bình luận (GET /api/v1/activities/{activityId}/interactions)
     @GetMapping("/activities/{activityId}/interactions")
     public ResponseEntity<List<InteractionResponse>> getActivityInteractions(@PathVariable String activityId) {
         List<InteractionResponse> responses = interactionService.getActivityInteractions(activityId);
         return ResponseEntity.ok(responses);
     }
 
-    // 3. Xóa bình luận (DELETE /api/v1/interactions/{interactionId})
     @DeleteMapping("/interactions/{interactionId}")
     public ResponseEntity<?> deleteInteraction(Principal principal, @PathVariable String interactionId) {
 

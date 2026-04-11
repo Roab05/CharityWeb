@@ -1,5 +1,7 @@
 package group3.project.charityweb.service.impl;
 
+import group3.project.charityweb.model.dto.request.ChangePasswordRequest;
+import group3.project.charityweb.repository.UserRepository;
 import group3.project.charityweb.service.UserService;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.model.dto.request.UpdateProfileRequest;
@@ -9,6 +11,7 @@ import group3.project.charityweb.model.entity.*;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.DonationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,8 +24,8 @@ public class UserServiceImpl implements UserService {
 
     private final AccountRepository accountRepository;
     private final DonationRepository donationRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    // 1. Lấy thông tin User hiện tại
     public UserProfileResponse getMyProfile(String username) {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
@@ -55,7 +58,6 @@ public class UserServiceImpl implements UserService {
         return builder.build();
     }
 
-    // 2. Cập nhật thông tin User hiện tại
     @Transactional
     public void updateMyProfile(String username, UpdateProfileRequest request) {
         Account account = accountRepository.findByUsername(username)
@@ -79,12 +81,28 @@ public class UserServiceImpl implements UserService {
         accountRepository.save(account);
     }
 
-    // 3. Lấy lịch sử quyên góp
+    @Override
+    @Transactional
+    public void changePassword(String username, ChangePasswordRequest request) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản."));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), account.getPassword())) {
+            throw new RuntimeException("Mật khẩu hiện tại không chính xác.");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
+            throw new RuntimeException("Xác nhận mật khẩu mới không khớp.");
+        }
+
+        account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        accountRepository.save(account);
+    }
+
     public List<DonationHistoryResponse> getMyDonations(String username) {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
 
-        // Admin không có quyên góp
         if (account instanceof Admin) {
             return List.of();
         }

@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.InteractionType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,8 +22,9 @@ public class ActivityInteraction {
     @Column(name = "content")
     private String content;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
-    private Integer type;
+    private InteractionType type;
 
     @Column(name = "createdAt")
     private LocalDateTime createdAt;
