@@ -1,12 +1,7 @@
-import axios from "axios";
+import api from './api';
 
-const REST_API_BASE_URL = "http://localhost:8081/api/donations"
+export const initiateDonation = (projectId, data) =>
+    api.post(`/projects/${projectId}/donations`, data);
 
-export const getAll = () => axios.get(REST_API_BASE_URL);
-
-export const getAllByUserId = (id) => axios.get(REST_API_BASE_URL + "/users/" + id);
-
-export const getByProjectId = (id) => axios.get(REST_API_BASE_URL + "/projects/" + id);
-
-export const addDonation = (donation) => axios.post(REST_API_BASE_URL + "/add", donation);
-
+export const getProjectDonations = (projectId) =>
+    api.get(`/projects/${projectId}/donations`);

@@ -1,23 +1,17 @@
-import axios from "axios";
+import api from './api';
 
-const REST_API_BASE_URL = "http://localhost:8081/api/projects"
+export const createProject = (data) => api.post('/projects', data);
 
-export const getProject = (id) => axios.get(REST_API_BASE_URL + '/' + id);
+export const getProjects = (params) => api.get('/projects', { params });
 
-export const getAllProjects = () => axios.get(REST_API_BASE_URL);
+export const getProjectById = (projectId) => api.get(`/projects/${projectId}`);
 
-export const uploadProject = (project) => axios.post(REST_API_BASE_URL + '/upload', project);
+export const createActivity = (projectId, data) => api.post(`/projects/${projectId}/activities`, data);
 
-export const updateProjectAmount = (data) => axios.put(REST_API_BASE_URL + "/update_amount", data);
+export const getProjectActivities = (projectId) => api.get(`/projects/${projectId}/activities`);
 
-export const getProjectCurrentAmount = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/current_amount");
+export const getProjectDonations = (projectId) => api.get(`/projects/${projectId}/donations`);
 
-export const getProjectDonationCount = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/donation_count");
+export const createDisbursement = (projectId, data) => api.post(`/projects/${projectId}/disbursements`, data);
 
-export const getProjectDaysLeft = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/days_left");
-
-export const getProjectState = (id) => axios.get(REST_API_BASE_URL + "/" + id + "/state");
-
-export const updateProjectInfo = (data) => axios.put(REST_API_BASE_URL + "/update_info", data);
-
-export const deleteProject = (id) => axios.delete(REST_API_BASE_URL + "/" + id + "/delete");
+export const getProjectDisbursements = (projectId) => api.get(`/projects/${projectId}/disbursements`);

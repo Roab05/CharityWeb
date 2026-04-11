@@ -1,81 +1,109 @@
-import { useState, useEffect } from 'react';
-import { getByProjectId as getDonationsByProjectId } from '../services/DonationService';
-import { getProject, getProjectCurrentAmount, getProjectDaysLeft, getProjectDonationCount, getProjectState } from '../services/ProjectService';
-/*
- ProjectCard component
- Props:
- - project: project object to display
- - onClick: handler when card is clicked (usually sets selectedProject)
-*/
-export default function ProjectCard({ project, onClick }) {
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from '../services/api';
 
-  const [currentProject, setCurrentProject] = useState(project);
-  const [progressPercentage, setProgressPercentage] = useState(0);
-  const [daysLeft, setDaysLeft] = useState(null);
-  const [currentAmount, setCurrentAmount] = useState(0);
-  const [donationCount, setDonationCount] = useState(0);
-  const [state, setState] = useState(null);
+const STATUS_CONFIG = {
+    ACTIVE: { label: 'Đang gây quỹ', className: 'badge-green' },
+    PENDING: { label: 'Chờ duyệt', className: 'badge-yellow' },
+    COMPLETED: { label: 'Hoàn thành', className: 'badge-blue' },
+    REJECTED: { label: 'Từ chối', className: 'badge-red' },
+    SUSPENDED: { label: 'Tạm dừng', className: 'badge-gray' },
+};
 
-  const fetchData = async () => {
-    try {
-      const projectRes = await getProject(currentProject.id);
-      const amountRes = await getProjectCurrentAmount(currentProject.id)
-      const donRes = await getProjectDonationCount(currentProject.id)
-      const stateRes = await getProjectState(currentProject.id);
-      const daysRes = await getProjectDaysLeft(currentProject.id);
+export default function ProjectCard({ project }) {
+    const navigate = useNavigate();
 
+    const progress = project.targetAmount > 0
+        ? Math.min((project.currentAmount / project.targetAmount) * 100, 100)
+        : 0;
 
-      const updatedProject = projectRes.data;
+    const statusCfg = STATUS_CONFIG[project.status] || STATUS_CONFIG.PENDING;
 
-      setCurrentProject(updatedProject);
-      setCurrentAmount(amountRes.data);
-      setDonationCount(donRes.data);
-      setState(stateRes.data);
-      setDaysLeft(daysRes.data);
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('vi-VN').format(amount || 0) + ' ₫';
+    };
 
-      setProgressPercentage(amountRes.data / updatedProject.targetAmount * 100);
+    const getImageUrl = (url) => {
+        if (!url) return 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&h=300&fit=crop';
+        if (url.startsWith('http')) return url;
+        return `${API_BASE_URL.replace('/api/v1', '')}/api/v1/images/${url}`;
+    };
 
-    } catch (error) {
-      console.error("Error fetching donations:", error);
-    }
-  };
+    const getDaysLeft = () => {
+        if (!project.endDate) return null;
+        const end = new Date(project.endDate);
+        const now = new Date();
+        const diff = Math.ceil((end - now) / (1000 * 60 * 60 * 24));
+        if (diff < 0) return 'Đã kết thúc';
+        if (diff === 0) return 'Hôm nay kết thúc';
+        return `Còn ${diff} ngày`;
+    };
 
-  useEffect(() => {
-    fetchData();
+    const daysLeft = getDaysLeft();
 
-    setProgressPercentage(currentAmount / currentProject.targetAmount * 100);
+    return (
+        <div
+            className="card overflow-hidden cursor-pointer group"
+            onClick={() => navigate(`/projects/${project.projectId}`)}
+        >
+            <div className="relative overflow-hidden">
+                <img
+                    src={getImageUrl(project.backgroundImageURL)}
+                    alt={project.projectName}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=400&h=300&fit=crop'; }}
+                />
+                <div className="absolute top-3 left-3">
+                    <span className={statusCfg.className}>{statusCfg.label}</span>
+                </div>
+                {project.categories?.length > 0 && (
+                    <div className="absolute top-3 right-3">
+                        <span className="badge bg-white/90 text-gray-700 backdrop-blur-sm">
+                            {project.categories[0].categoryName}
+                        </span>
+                    </div>
+                )}
+            </div>
 
-    const interval = setInterval(fetchData, 3000);
+            <div className="p-5">
+                <h3 className="text-lg font-semibold text-gray-800 mb-2 line-clamp-2 group-hover:text-primary-600 transition-colors">
+                    {project.projectName}
+                </h3>
 
-    return () => clearInterval(interval);
-  }, []);
-  return (
-    <div className="project-card bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer" onClick={() => { onClick(currentProject); window.scrollTo(0, 0) }}>
-      <img src={currentProject.imageUrl} alt={currentProject.name} className="w-full h-48 object-cover" />
-      <div className="p-6">
-        <h3 className="text-xl font-semibold mb-2">{currentProject.name}</h3>
-        <p className="text-gray-600 mb-4 line-clamp-2">{currentProject.description}</p>
-        <div className="mb-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Đã gây quỹ</span>
-            <span>{Math.round(progressPercentage * 100) / 100}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div className="progress-bar h-2 rounded-full" style={{ width: `${Math.min(progressPercentage, 100)}%` }}></div>
-          </div>
+                {project.organizationNames?.length > 0 && (
+                    <p className="text-xs text-gray-500 mb-3">
+                        bởi {project.organizationNames.join(', ')}
+                    </p>
+                )}
+
+                <p className="text-sm text-gray-500 mb-4 line-clamp-2">{project.description}</p>
+
+                {/* Progress */}
+                <div className="mb-3">
+                    <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                        <span>Đã gây quỹ</span>
+                        <span className="font-medium text-gray-700">{Math.round(progress)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                            className="progress-bar h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                    <div>
+                        <p className="text-primary-600 font-bold text-sm">{formatCurrency(project.currentAmount)}</p>
+                        <p className="text-xs text-gray-400">/ {formatCurrency(project.targetAmount)}</p>
+                    </div>
+                    {daysLeft && (
+                        <span className={`text-xs font-medium ${daysLeft === 'Đã kết thúc' ? 'text-red-500' : 'text-gray-500'}`}>
+                            ⏰ {daysLeft}
+                        </span>
+                    )}
+                </div>
+            </div>
         </div>
-        <div className="flex justify-between items-center text-sm">
-          <span className="text-green-600 font-semibold">
-            {currentAmount.toLocaleString('vi-VN')} VNĐ
-          </span>
-          <span className="text-gray-500">{donationCount} lượt ủng hộ</span>
-        </div>
-        <div className="mt-2 text-sm">
-          {state === 0 && <span>⏰ Sắp diễn ra </span>}
-          {state === 1 && <span className="text-orange-600">⏰ Còn {daysLeft} ngày</span>}
-          {state === 2 && <span className="text-red-600"> ❌ Đã kết thúc</span>}
-        </div>
-      </div>
-    </div>
-  );
+    );
 }

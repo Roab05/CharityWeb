@@ -1,63 +1,74 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { getProjects } from '../services/ProjectService';
 import ProjectCard from '../components/ProjectCard';
-/*
- CategoriesPage
- Props: setSelectedProject
-*/
-export default function CategoriesPage({ projects, setSelectedProject }) {
+import LoadingSpinner from '../components/LoadingSpinner';
 
-  let educationCount = 0;
-  let wildlifeCount = 0;
-  let socialCount = 0;
-  let environmentCount = 0;
-  let otherCount = 0;
+const CATEGORIES = [
+    { icon: '📚', name: 'Giáo dục', color: 'from-blue-500 to-blue-600' },
+    { icon: '🏥', name: 'Y tế', color: 'from-red-500 to-red-600' },
+    { icon: '🌱', name: 'Môi trường', color: 'from-green-500 to-green-600' },
+    { icon: '🤝', name: 'Xã hội', color: 'from-purple-500 to-purple-600' },
+    { icon: '🦁', name: 'Động vật', color: 'from-amber-500 to-amber-600' },
+    { icon: '🏠', name: 'Nhà ở', color: 'from-teal-500 to-teal-600' },
+    { icon: '💡', name: 'Công nghệ', color: 'from-indigo-500 to-indigo-600' },
+    { icon: '❤️', name: 'Khác', color: 'from-pink-500 to-pink-600' },
+];
 
-  projects && projects.forEach(p => {
-    switch (p.category) {
-      case 'Giáo dục':
-        educationCount++;
-        break;
-      case 'Động vật hoang dã':
-        wildlifeCount++;
-        break;
-      case 'Xã hội':
-        socialCount++;
-        break;
-      case 'Môi trường':
-        environmentCount++;
-        break;
-      case 'Khác':
-        otherCount++;
-        break;
-    }
-  });
+export default function CategoriesPage() {
+    const navigate = useNavigate();
+    const [featured, setFeatured] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-  const categories = [
-    { id: 'education', name: 'Giáo dục', icon: '📚', count: educationCount },
-    { id: 'wildlife', name: 'Động vật hoang dã', icon: '🦁', count: wildlifeCount },
-    { id: 'social', name: 'Xã hội', icon: '🤝', count: socialCount },
-    { id: 'environment', name: 'Môi trường', icon: '🌱', count: environmentCount },
-    { id: 'other', name: 'Khác', icon: '❤️‍🩹', count: otherCount }
-  ];
-  return (
-    <div className="py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="text-3xl font-bold mb-8">Phân loại</h1>
-        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
-          {categories.map(c => (
-            <div key={c.id} className="bg-white rounded-xl shadow-lg p-6 text-center hover:shadow-xl transition-shadow cursor-pointer">
-              <div className="text-4xl mb-4">{c.icon}</div>
-              <h3 className="text-xl font-semibold mb-2">{c.name}</h3>
-              <p className="text-gray-600">{c.count} dự án</p>
+    useEffect(() => {
+        const fetchFeatured = async () => {
+            try {
+                const res = await getProjects({ status: 'ACTIVE', page: 0, size: 3 });
+                setFeatured(res.data.content || []);
+            } catch { /* ignore */ }
+            setLoading(false);
+        };
+        fetchFeatured();
+    }, []);
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-10">
+                <h1 className="text-3xl font-bold text-gray-800">Danh mục dự án</h1>
+                <p className="text-gray-500 mt-2">Khám phá dự án theo lĩnh vực bạn quan tâm</p>
             </div>
-          ))}
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+                {CATEGORIES.map((cat) => (
+                    <button
+                        key={cat.name}
+                        onClick={() => navigate(`/projects?status=ACTIVE`)}
+                        className="group relative overflow-hidden rounded-2xl p-6 text-center text-white transition-transform hover:scale-105"
+                    >
+                        <div className={`absolute inset-0 bg-gradient-to-br ${cat.color}`} />
+                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors" />
+                        <div className="relative">
+                            <div className="text-4xl mb-3">{cat.icon}</div>
+                            <h3 className="font-semibold text-lg">{cat.name}</h3>
+                        </div>
+                    </button>
+                ))}
+            </div>
+
+            <div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Dự án nổi bật</h2>
+                {loading ? (
+                    <LoadingSpinner />
+                ) : featured.length > 0 ? (
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {featured.map((p) => (
+                            <ProjectCard key={p.projectId} project={p} />
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-center text-gray-500 py-8">Chưa có dự án nổi bật</p>
+                )}
+            </div>
         </div>
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">Nổi bật</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {projects.slice(0, 3).map(p => <ProjectCard key={p.id} project={p} onClick={setSelectedProject} />)}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
