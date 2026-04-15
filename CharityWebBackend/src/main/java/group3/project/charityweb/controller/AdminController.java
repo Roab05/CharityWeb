@@ -7,11 +7,11 @@ import group3.project.charityweb.model.dto.response.SystemStatisticsResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
 import group3.project.charityweb.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,8 +27,10 @@ public class AdminController {
     }
 
     @GetMapping("/organizations/pending")
-    public ResponseEntity<List<UserProfileResponse>> getPendingOrganizations() {
-        return ResponseEntity.ok(adminService.getPendingOrganizations());
+    public ResponseEntity<Page<UserProfileResponse>> getPendingOrganizations(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(adminService.getPendingOrganizations(page, size));
     }
 
     @PutMapping("/organizations/{orgId}/verify")
@@ -38,8 +40,10 @@ public class AdminController {
     }
 
     @GetMapping("/projects/pending")
-    public ResponseEntity<List<ProjectResponse>> getPendingProjects() {
-        return ResponseEntity.ok(adminService.getPendingProjects());
+    public ResponseEntity<Page<ProjectResponse>> getPendingProjects(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(adminService.getPendingProjects(page, size));
     }
 
     @PutMapping("/projects/{projectId}/approve")
@@ -71,8 +75,10 @@ public class AdminController {
     }
 
     @GetMapping("/disbursements/pending")
-    public ResponseEntity<List<DisbursementResponse>> getPendingDisbursements() {
-        return ResponseEntity.ok(adminService.getPendingDisbursements());
+    public ResponseEntity<Page<DisbursementResponse>> getPendingDisbursements(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(adminService.getPendingDisbursements(page, size));
     }
 
     @PutMapping("/disbursements/{disbursementId}/status")

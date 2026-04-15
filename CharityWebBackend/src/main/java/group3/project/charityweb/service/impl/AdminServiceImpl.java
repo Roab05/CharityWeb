@@ -16,6 +16,9 @@ import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.repository.*;
 import group3.project.charityweb.service.AdminService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,9 +48,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserProfileResponse> getPendingOrganizations() {
-        List<Organization> pendingOrgs = organizationRepository.findByStatusOrderByCreatedAtDesc(AccountStatus.PENDING);
-        return pendingOrgs.stream().map(org -> UserProfileResponse.builder()
+    public Page<UserProfileResponse> getPendingOrganizations(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Organization> pendingOrgs = organizationRepository.findByStatusOrderByCreatedAtDesc(AccountStatus.PENDING, pageRequest);
+        return pendingOrgs.map(org -> UserProfileResponse.builder()
                 .accountId(org.getId())
                 .username(org.getUsername())
                 .email(org.getEmail())
@@ -58,11 +62,12 @@ public class AdminServiceImpl implements AdminService {
                 .status(org.getStatus())
                 .roleType("ORGANIZATION")
                 .build()
-        ).collect(Collectors.toList());
+        );
     }
 
     @Override
     @Transactional
+    @CacheEvict(value = "userDetailsByUsername", allEntries = true)
     public void updateOrganizationStatus(String orgId, UpdateAccountStatusRequest request) {
         Organization org = organizationRepository.findById(orgId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Tổ chức!"));
@@ -71,9 +76,10 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<ProjectResponse> getPendingProjects() {
-        List<Project> pendingProjects = projectRepository.findByStatusOrderByCreatedAtDesc(ProjectStatus.PENDING);
-        return pendingProjects.stream().map(project -> ProjectResponse.builder()
+    public Page<ProjectResponse> getPendingProjects(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> pendingProjects = projectRepository.findByStatusOrderByCreatedAtDesc(ProjectStatus.PENDING, pageRequest);
+        return pendingProjects.map(project -> ProjectResponse.builder()
                 .projectId(project.getProjectId())
                 .projectName(project.getProjectName())
                 .startDate(project.getStartDate())
@@ -84,7 +90,7 @@ public class AdminServiceImpl implements AdminService {
                 .status(project.getStatus())
                 .organizationNames(project.getOrganizations().stream().map(Organization::getName).collect(Collectors.toList()))
                 .build()
-        ).collect(Collectors.toList());
+        );
     }
 
     @Override
@@ -98,6 +104,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userDetailsByUsername", allEntries = true)
     public void updateUserStatus(String userId, UpdateAccountStatusRequest request) {
         Account account = accountRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản người dùng!"));
@@ -131,10 +138,10 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<DisbursementResponse> getPendingDisbursements() {
-        return disbursementRepository.findAllByStatus(DisbursementStatus.PENDING).stream()
-                .map(this::mapToDisbursementResponse)
-                .toList();
+    public Page<DisbursementResponse> getPendingDisbursements(int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return disbursementRepository.findAllByStatus(DisbursementStatus.PENDING, pageRequest)
+                .map(this::mapToDisbursementResponse);
     }
 
     @Override

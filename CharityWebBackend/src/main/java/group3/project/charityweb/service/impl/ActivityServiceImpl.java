@@ -12,11 +12,10 @@ import group3.project.charityweb.repository.ProjectActivityRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import group3.project.charityweb.service.ActivityService;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -47,16 +46,15 @@ public class ActivityServiceImpl implements ActivityService {
         return activity.getActivityId();
     }
 
-    public List<ActivityResponse> getProjectActivities(String projectId) {
+    public Page<ActivityResponse> getProjectActivities(String projectId, int page, int size) {
         if (!projectRepository.existsById(projectId)) {
             throw new ResourceNotFoundException("Dự án không tồn tại!");
         }
 
-        List<ProjectActivity> activities = activityRepository.findByProject_ProjectId(projectId);
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<ProjectActivity> activities = activityRepository.findByProject_ProjectId(projectId, pageRequest);
 
-        return activities.stream()
-                .map(this::mapToActivityResponse)
-                .collect(Collectors.toList());
+        return activities.map(this::mapToActivityResponse);
     }
 
     @Transactional

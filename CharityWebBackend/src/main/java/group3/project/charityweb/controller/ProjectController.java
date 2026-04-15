@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -64,8 +63,11 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/activities")
-    public ResponseEntity<List<ActivityResponse>> getActivities(@PathVariable String projectId) {
-        List<ActivityResponse> activities = activityService.getProjectActivities(projectId);
+    public ResponseEntity<Page<ActivityResponse>> getActivities(
+            @PathVariable String projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ActivityResponse> activities = activityService.getProjectActivities(projectId, page, size);
         return ResponseEntity.ok(activities);
     }
 }

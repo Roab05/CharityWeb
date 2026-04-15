@@ -4,12 +4,12 @@ import group3.project.charityweb.model.dto.request.InteractionRequest;
 import group3.project.charityweb.model.dto.response.InteractionResponse;
 import group3.project.charityweb.service.InteractionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,8 +35,11 @@ public class InteractionController {
     }
 
     @GetMapping("/activities/{activityId}/interactions")
-    public ResponseEntity<List<InteractionResponse>> getActivityInteractions(@PathVariable String activityId) {
-        List<InteractionResponse> responses = interactionService.getActivityInteractions(activityId);
+    public ResponseEntity<Page<InteractionResponse>> getActivityInteractions(
+            @PathVariable String activityId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<InteractionResponse> responses = interactionService.getActivityInteractions(activityId, page, size);
         return ResponseEntity.ok(responses);
     }
 

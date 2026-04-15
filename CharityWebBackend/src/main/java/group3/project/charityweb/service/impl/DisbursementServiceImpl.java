@@ -12,13 +12,13 @@ import group3.project.charityweb.repository.DisbursementRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import group3.project.charityweb.service.DisbursementService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -79,15 +79,14 @@ public class DisbursementServiceImpl implements DisbursementService {
     }
 
     @Override
-    public List<DisbursementResponse> getProjectDisbursements(String projectId) {
+    public Page<DisbursementResponse> getProjectDisbursements(String projectId, int page, int size) {
         if (!projectRepository.existsById(projectId)) {
             throw new ResourceNotFoundException("Dự án không tồn tại!");
         }
 
-        List<Disbursement> disbursements = disbursementRepository.findByProject_ProjectIdOrderByDisbursementTimeDesc(projectId);
-        return disbursements.stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Disbursement> disbursements = disbursementRepository.findByProject_ProjectIdOrderByDisbursementTimeDesc(projectId, pageRequest);
+        return disbursements.map(this::mapToResponse);
     }
 
     @Override

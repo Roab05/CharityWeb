@@ -7,6 +7,7 @@ import group3.project.charityweb.model.entity.Organization;
 import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final AccountRepository accountRepository;
 
     @Override
+    @Cacheable(value = "userDetailsByUsername", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với username: " + username));
@@ -36,9 +38,9 @@ public class CustomUserDetailsService implements UserDetailsService {
         String roleName = "ROLE_USER";
 
         switch (account) {
-            case Admin admin -> roleName = "ROLE_ADMIN";
-            case Organization organization -> roleName = "ROLE_ORGANIZATION";
-            case Individual individual -> roleName = "ROLE_INDIVIDUAL";
+            case Admin ignored -> roleName = "ROLE_ADMIN";
+            case Organization ignored -> roleName = "ROLE_ORGANIZATION";
+            case Individual ignored -> roleName = "ROLE_INDIVIDUAL";
             default -> {
             }
         }
