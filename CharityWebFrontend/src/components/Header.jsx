@@ -42,32 +42,41 @@ export default function Header() {
     return (
         <>
             <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
+                <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* SỬA Ở ĐÂY: Thay h-16 thành py-5 (hoặc py-6 nếu muốn cao hơn nữa) */}
+                    <div className="flex items-center justify-between py-5">
+                        
                         {/* Logo */}
                         <Link to="/" className="flex items-center space-x-2 flex-shrink-0">
                             <span className="text-2xl">🌱</span>
                             <span className="text-xl font-bold text-primary-600">GayQuy.vn</span>
                         </Link>
 
-                        {/* Desktop Nav */}
-                        <nav className="hidden md:flex items-center space-x-1">
-                            <Link to="/" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                        {/* Desktop Nav - Đã dãn cách và tăng cỡ chữ lên text-base */}
+                        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
+                            <Link to="/" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Trang chủ
                             </Link>
-                            <Link to="/projects" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/explore" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                Khám phá
+                            </Link>
+                            <Link to="/projects" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Dự án
                             </Link>
-                            <Link to="/categories" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/categories" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Danh mục
                             </Link>
+                            <Link to="/about" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                Giới thiệu
+                            </Link>
+                            
                             {user?.roleType === 'ORGANIZATION' && (
-                                <Link to="/projects/new" className="px-3 py-2 rounded-lg text-sm font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                <Link to="/projects/new" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                     Tạo dự án
                                 </Link>
                             )}
                             {user?.roleType === 'ADMIN' && (
-                                <Link to="/admin" className="px-3 py-2 rounded-lg text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                                <Link to="/admin" className="px-3 py-2 rounded-lg text-base font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all">
                                     Quản trị
                                 </Link>
                             )}
@@ -79,11 +88,11 @@ export default function Header() {
                                 <input
                                     type="text"
                                     placeholder="Tìm kiếm dự án..."
-                                    className="pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-52 lg:w-64 bg-gray-50"
+                                    className="pl-9 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent w-52 lg:w-64 bg-gray-50"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
-                                <svg className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="absolute left-2.5 top-3 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
                             </form>
@@ -94,7 +103,7 @@ export default function Header() {
                                         onClick={() => setUserMenuOpen(!userMenuOpen)}
                                         className="flex items-center space-x-2 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                                     >
-                                        <div className="w-8 h-8 rounded-full bg-primary-100 flex items-center justify-center">
+                                        <div className="w-9 h-9 rounded-full bg-primary-100 flex items-center justify-center">
                                             <span className="text-primary-700 font-semibold text-sm">
                                                 {getDisplayName()?.charAt(0)?.toUpperCase()}
                                             </span>
@@ -155,13 +164,13 @@ export default function Header() {
                                 <div className="flex items-center space-x-2">
                                     <button
                                         onClick={() => setShowLogin(true)}
-                                        className="text-sm font-medium text-gray-700 hover:text-primary-600 px-3 py-2 transition-colors"
+                                        className="text-base font-medium text-gray-700 hover:text-primary-600 px-3 py-2 transition-colors"
                                     >
                                         Đăng nhập
                                     </button>
                                     <Link
                                         to="/register"
-                                        className="text-sm font-medium bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+                                        className="text-base font-medium bg-primary-600 text-white px-5 py-2.5 rounded-lg hover:bg-primary-700 transition-colors"
                                     >
                                         Đăng ký
                                     </Link>
