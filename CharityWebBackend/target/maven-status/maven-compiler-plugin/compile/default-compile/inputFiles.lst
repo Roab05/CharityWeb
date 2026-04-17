@@ -44,6 +44,7 @@ D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\proj
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\DonationResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\InteractionResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\PaymentUrlResponse.java
+D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\ProjectRecommendationResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\ProjectResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\SystemStatisticsResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\TransactionHistoryResponse.java

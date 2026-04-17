@@ -7,12 +7,13 @@ import group3.project.charityweb.model.entity.Organization;
 import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -24,15 +25,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final AccountRepository accountRepository;
 
     @Override
-    @Cacheable(value = "userDetailsByUsername", key = "#username")
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với username: " + username));
 
         if (account.getStatus() == AccountStatus.BANNED) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
+            throw new LockedException("Tài khoản của bạn đã bị khóa!");
         } else if (account.getStatus() == AccountStatus.PENDING) {
-            throw new RuntimeException("Tài khoản đang chờ Admin phê duyệt!");
+            throw new DisabledException("Tài khoản đang chờ Admin phê duyệt!");
         }
 
         String roleName = "ROLE_USER";
