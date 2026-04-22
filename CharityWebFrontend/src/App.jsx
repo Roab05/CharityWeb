@@ -21,6 +21,7 @@ import TermsPage from './pages/TermsPage';
 import HelpPage from './pages/HelpPage';
 import NotFoundPage from './pages/NotFoundPage';
 import MyProjectsPage from './pages/MyProjectsPage';
+import ChatbotWidget from './components/ChatbotWidget';
 
 function AppLayout({ children }) {
     return (
@@ -35,6 +36,7 @@ function AppLayout({ children }) {
 export default function App() {
     return (
         <AuthProvider>
+            <ChatbotWidget />
             <Routes>
                 {/* Register page - no header/footer */}
                 <Route path="/register" element={<RegisterPage />} />
