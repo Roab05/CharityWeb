@@ -44,6 +44,16 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
+    @GetMapping("/me/managed")
+    public ResponseEntity<Page<ProjectResponse>> getMyManagedProjects(
+            Principal principal,
+            @RequestParam(required = false) ProjectStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ProjectResponse> projects = projectService.getMyManagedProjects(principal.getName(), status, page, size);
+        return ResponseEntity.ok(projects);
+    }
+
     @GetMapping("/{projectId}")
     public ResponseEntity<ProjectResponse> getProjectDetails(@PathVariable String projectId) {
         ProjectResponse project = projectService.getProjectResponseById(projectId);
