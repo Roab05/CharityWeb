@@ -1,21 +1,21 @@
 package group3.project.charityweb.service.impl;
 
-import group3.project.charityweb.exception.DuplicateResourceException;
+import group3.project.charityweb.model.dto.response.ActivityResponse;
+import group3.project.charityweb.model.dto.response.ProjectResponse;
+import group3.project.charityweb.model.enums.ProjectStatus;
+import group3.project.charityweb.service.ProjectService;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.exception.UnauthorizedAccessException;
-import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest;
+import group3.project.charityweb.model.dto.request.ActivityRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
-import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
-import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.entity.Organization;
 import group3.project.charityweb.model.entity.Project;
+import group3.project.charityweb.model.entity.ProjectActivity;
 import group3.project.charityweb.model.entity.ProjectCategory;
-import group3.project.charityweb.model.enums.AccountStatus;
-import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.repository.OrganizationRepository;
+import group3.project.charityweb.repository.ProjectActivityRepository;
 import group3.project.charityweb.repository.ProjectCategoryRepository;
 import group3.project.charityweb.repository.ProjectRepository;
-import group3.project.charityweb.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,56 +87,6 @@ public class ProjectServiceImpl implements ProjectService {
                 : projectRepository.findByOrganizations_UsernameAndStatusOrderByCreatedAtDesc(username, status, pageRequest);
 
         return projectPage.map(this::mapToProjectResponse);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<OrganizationSelectorResponse> getOrganizationsForSelector(String name) {
-        List<Organization> organizations = (name == null || name.isBlank())
-                ? organizationRepository.findByStatusOrderByCreatedAtDesc(AccountStatus.ACTIVE)
-                : organizationRepository.findByStatusAndNameContainingIgnoreCaseOrderByCreatedAtDesc(AccountStatus.ACTIVE, name.trim());
-
-        return organizations.stream()
-                .map(org -> OrganizationSelectorResponse.builder()
-                        .organizationId(org.getId())
-                        .name(org.getName())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional
-    public void addOrganizationToProject(String username, String projectId, AddProjectOrganizationRequest request) {
-        if (request == null || request.getOrganizationId() == null || request.getOrganizationId().isBlank()) {
-            throw new ResourceNotFoundException("Thiếu organizationId để thêm vào dự án.");
-        }
-
-        Organization actor = organizationRepository.findByUsername(username)
-                .orElseThrow(() -> new UnauthorizedAccessException("Tài khoản không phải Tổ chức!"));
-        Project project = getProjectEntityById(projectId);
-
-        boolean isManager = project.getOrganizations().stream()
-                .anyMatch(org -> org.getId().equals(actor.getId()));
-        if (!isManager) {
-            throw new UnauthorizedAccessException("Bạn không có quyền thêm tổ chức vào dự án này!");
-        }
-
-        Organization target = organizationRepository.findById(request.getOrganizationId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tổ chức cần thêm!"));
-
-        if (target.getStatus() != AccountStatus.ACTIVE) {
-            throw new UnauthorizedAccessException("Chỉ có thể thêm tổ chức đang hoạt động vào dự án.");
-        }
-
-        List<Organization> organizations = new ArrayList<>(project.getOrganizations() == null ? List.of() : project.getOrganizations());
-        boolean alreadyManaged = organizations.stream().anyMatch(org -> org.getId().equals(target.getId()));
-        if (alreadyManaged) {
-            throw new DuplicateResourceException("Tổ chức đã nằm trong danh sách quản lý dự án.");
-        }
-
-        organizations.add(target);
-        project.setOrganizations(organizations);
-        projectRepository.save(project);
     }
 
     public ProjectResponse getProjectResponseById(String projectId) {
