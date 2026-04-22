@@ -92,9 +92,14 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const fetchInteractions = async (activityId) => {
         try {
             const res = await getActivityInteractions(activityId);
-            setInteractionsByActivity((prev) => ({ ...prev, [activityId]: res.data || [] }));
+            setInteractionsByActivity((prev) => ({ ...prev, [activityId]: res.data?.content || [] }));
         } catch { /* ignore */ }
     };
+
+    useEffect(() => {
+        if (activities.length === 0) return;
+        activities.forEach((activity) => fetchInteractions(activity.activityId));
+    }, [activities]);
 
     const handleCreateActivity = async (e) => {
         e.preventDefault();
@@ -147,6 +152,13 @@ export default function ProjectDetailPage({ isManageMode = false }) {
         } catch { /* ignore */ }
     };
 
+    const handleDislike = async (activityId) => {
+        try {
+            await createInteraction(activityId, { type: 'DISLIKE', content: null });
+            fetchInteractions(activityId);
+        } catch { /* ignore */ }
+    };
+
     const handleDeleteInteraction = async (interactionId, activityId) => {
         try {
             await deleteInteraction(interactionId);
@@ -175,10 +187,20 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     const tabs = [
         { key: 'about', label: 'Giới thiệu' },
-        ...(isManageMode ? [{ key: 'activities', label: `Cập nhật (${activities.length})` }] : []),
+        ...(isManageMode ? [{ key: 'activities', label: `Tiến độ (${activities.length})` }] : []),
         { key: 'donations', label: `Ủng hộ (${donations.length})` },
         ...(isManageMode ? [{ key: 'disbursements', label: `Giải ngân (${disbursements.length})` }] : []),
     ];
+
+    const getActivityStats = (activityId) => {
+        const interactions = interactionsByActivity[activityId] || [];
+        return {
+            likes: interactions.filter((i) => i.type === 'LIKE').length,
+            dislikes: interactions.filter((i) => i.type === 'DISLIKE').length,
+            comments: interactions.filter((i) => i.type === 'COMMENT').length,
+            commentList: interactions.filter((i) => i.type === 'COMMENT'),
+        };
+    };
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -254,30 +276,97 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                 )}
                             </div>
 
-                            {/* Show activities in About tab as "Bài đăng cập nhật" */}
+                            {/* Show activities in About tab as "Tiến độ" */}
                             {activities.length > 0 && (
                                 <div className="mt-10 border-t pt-8">
-                                    <h2 className="text-xl font-bold text-gray-800 mb-6">Cập nhật dự án</h2>
+                                    <h2 className="text-xl font-bold text-gray-800 mb-6">Tiến độ</h2>
                                     <div className="space-y-6">
-                                        {activities.map((activity) => (
-                                            <div key={activity.activityId} className="card p-6 bg-gray-50">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
-                                                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
-                                                        {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
-                                                    </span>
+                                        {activities.map((activity) => {
+                                            const stats = getActivityStats(activity.activityId);
+                                            return (
+                                                <div key={activity.activityId} className="card p-6 bg-gray-50">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
+                                                        <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                                                            {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                                        </span>
+                                                    </div>
+                                                    {activity.imageURL && (
+                                                        <img
+                                                            src={getImageUrl(activity.imageURL)}
+                                                            alt={activity.title}
+                                                            className="w-full h-48 object-cover rounded-lg mb-3"
+                                                            onError={(e) => { e.target.style.display = 'none'; }}
+                                                        />
+                                                    )}
+                                                    <p className="text-gray-600 whitespace-pre-line mb-4">{activity.content}</p>
+
+                                                    <div className="border-t pt-4">
+                                                        <div className="flex flex-wrap gap-3 mb-3">
+                                                            {user && (
+                                                                <>
+                                                                    <button onClick={() => handleLike(activity.activityId)} className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
+                                                                        ❤️ Thích ({stats.likes})
+                                                                    </button>
+                                                                    <button onClick={() => handleDislike(activity.activityId)} className="text-sm text-gray-500 hover:text-amber-500 transition-colors flex items-center gap-1">
+                                                                        👎 Không thích ({stats.dislikes})
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            <button
+                                                                onClick={() => fetchInteractions(activity.activityId)}
+                                                                className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
+                                                            >
+                                                                💬 Bình luận ({stats.comments})
+                                                            </button>
+                                                        </div>
+
+                                                        {user && (
+                                                            <div className="flex gap-2 mb-3">
+                                                                <input
+                                                                    type="text"
+                                                                    className="input-field text-sm flex-1"
+                                                                    placeholder="Viết bình luận..."
+                                                                    value={commentTexts[activity.activityId] || ''}
+                                                                    onChange={(e) => setCommentTexts((prev) => ({ ...prev, [activity.activityId]: e.target.value }))}
+                                                                    onKeyDown={(e) => e.key === 'Enter' && handleComment(activity.activityId)}
+                                                                />
+                                                                <button
+                                                                    onClick={() => handleComment(activity.activityId)}
+                                                                    className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors"
+                                                                >
+                                                                    Gửi
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {stats.commentList.length > 0 && (
+                                                            <div className="space-y-2 max-h-60 overflow-y-auto">
+                                                                {stats.commentList.map((interaction) => (
+                                                                    <div key={interaction.interactionId} className="flex items-start gap-2 text-sm">
+                                                                        <div className="flex-1 bg-white rounded-lg p-2.5 border border-gray-100">
+                                                                            <div className="flex justify-between items-start">
+                                                                                <span className="font-medium text-gray-800">{interaction.displayName || interaction.username}</span>
+                                                                                {user && (interaction.userId === user.accountId) && (
+                                                                                    <button
+                                                                                        onClick={() => handleDeleteInteraction(interaction.interactionId, activity.activityId)}
+                                                                                        className="text-xs text-red-400 hover:text-red-600"
+                                                                                    >
+                                                                                        Xóa
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                            <p className="text-gray-600 mt-0.5">{interaction.content}</p>
+                                                                            <p className="text-xs text-gray-400 mt-1">{new Date(interaction.createdAt).toLocaleString('vi-VN')}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                {activity.imageURL && (
-                                                    <img
-                                                        src={getImageUrl(activity.imageURL)}
-                                                        alt={activity.title}
-                                                        className="w-full h-48 object-cover rounded-lg mb-3"
-                                                        onError={(e) => { e.target.style.display = 'none'; }}
-                                                    />
-                                                )}
-                                                <p className="text-gray-600 whitespace-pre-line">{activity.content}</p>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             )}
@@ -330,72 +419,71 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                             )}
 
                             {activities.length === 0 ? (
-                                <p className="text-center text-gray-500 py-8">Chưa có cập nhật nào</p>
+                                <p className="text-center text-gray-500 py-8">Chưa có tiến độ nào</p>
                             ) : (
-                                activities.map((activity) => (
-                                    <div key={activity.activityId} className="card p-6">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
-                                            <span className="text-sm text-gray-500">
-                                                {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
-                                            </span>
-                                        </div>
-                                        {activity.imageURL && (
-                                            <img
-                                                src={getImageUrl(activity.imageURL)}
-                                                alt={activity.title}
-                                                className="w-full h-48 object-cover rounded-lg mb-3"
-                                                onError={(e) => { e.target.style.display = 'none'; }}
-                                            />
-                                        )}
-                                        <p className="text-gray-600 whitespace-pre-line mb-4">{activity.content}</p>
-
-                                        {/* Interactions */}
-                                        <div className="border-t pt-4">
-                                            <div className="flex gap-3 mb-3">
-                                                {user && (
-                                                    <>
-                                                        <button onClick={() => handleLike(activity.activityId)} className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
-                                                            ❤️ Thích
-                                                        </button>
-                                                    </>
-                                                )}
-                                                <button
-                                                    onClick={() => fetchInteractions(activity.activityId)}
-                                                    className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
-                                                >
-                                                    💬 Bình luận ({interactionsByActivity[activity.activityId]?.filter((i) => i.type === 'COMMENT').length || 0})
-                                                </button>
+                                activities.map((activity) => {
+                                    const stats = getActivityStats(activity.activityId);
+                                    return (
+                                        <div key={activity.activityId} className="card p-6">
+                                            <div className="flex justify-between items-start mb-2">
+                                                <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
+                                                <span className="text-sm text-gray-500">
+                                                    {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                                </span>
                                             </div>
+                                            {activity.imageURL && (
+                                                <img
+                                                    src={getImageUrl(activity.imageURL)}
+                                                    alt={activity.title}
+                                                    className="w-full h-48 object-cover rounded-lg mb-3"
+                                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                                />
+                                            )}
+                                            <p className="text-gray-600 whitespace-pre-line mb-4">{activity.content}</p>
 
-                                            {/* Comment input */}
-                                            {user && (
-                                                <div className="flex gap-2 mb-3">
-                                                    <input
-                                                        type="text"
-                                                        className="input-field text-sm flex-1"
-                                                        placeholder="Viết bình luận..."
-                                                        value={commentTexts[activity.activityId] || ''}
-                                                        onChange={(e) => setCommentTexts((prev) => ({ ...prev, [activity.activityId]: e.target.value }))}
-                                                        onKeyDown={(e) => e.key === 'Enter' && handleComment(activity.activityId)}
-                                                    />
+                                            <div className="border-t pt-4">
+                                                <div className="flex flex-wrap gap-3 mb-3">
+                                                    {user && (
+                                                        <>
+                                                            <button onClick={() => handleLike(activity.activityId)} className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
+                                                                ❤️ Thích ({stats.likes})
+                                                            </button>
+                                                            <button onClick={() => handleDislike(activity.activityId)} className="text-sm text-gray-500 hover:text-amber-500 transition-colors flex items-center gap-1">
+                                                                👎 Không thích ({stats.dislikes})
+                                                            </button>
+                                                        </>
+                                                    )}
                                                     <button
-                                                        onClick={() => handleComment(activity.activityId)}
-                                                        className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors"
+                                                        onClick={() => fetchInteractions(activity.activityId)}
+                                                        className="text-sm text-gray-500 hover:text-primary-600 transition-colors"
                                                     >
-                                                        Gửi
+                                                        💬 Bình luận ({stats.comments})
                                                     </button>
                                                 </div>
-                                            )}
 
-                                            {/* Interactions list */}
-                                            {interactionsByActivity[activity.activityId]?.length > 0 && (
-                                                <div className="space-y-2 max-h-60 overflow-y-auto">
-                                                    {interactionsByActivity[activity.activityId].map((interaction) => (
-                                                        <div key={interaction.interactionId} className="flex items-start gap-2 text-sm">
-                                                            {interaction.type === 'LIKE' ? (
-                                                                <p className="text-gray-500">❤️ <span className="font-medium">{interaction.displayName || interaction.username}</span> đã thích</p>
-                                                            ) : (
+                                                {user && (
+                                                    <div className="flex gap-2 mb-3">
+                                                        <input
+                                                            type="text"
+                                                            className="input-field text-sm flex-1"
+                                                            placeholder="Viết bình luận..."
+                                                            value={commentTexts[activity.activityId] || ''}
+                                                            onChange={(e) => setCommentTexts((prev) => ({ ...prev, [activity.activityId]: e.target.value }))}
+                                                            onKeyDown={(e) => e.key === 'Enter' && handleComment(activity.activityId)}
+                                                        />
+                                                        <button
+                                                            onClick={() => handleComment(activity.activityId)}
+                                                            className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm hover:bg-primary-700 transition-colors"
+                                                        >
+                                                            Gửi
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {stats.commentList.length > 0 && (
+                                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                                        {stats.commentList.map((interaction) => (
+                                                            <div key={interaction.interactionId} className="flex items-start gap-2 text-sm">
                                                                 <div className="flex-1 bg-gray-50 rounded-lg p-2.5">
                                                                     <div className="flex justify-between items-start">
                                                                         <span className="font-medium text-gray-800">{interaction.displayName || interaction.username}</span>
@@ -411,14 +499,14 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                                                     <p className="text-gray-600 mt-0.5">{interaction.content}</p>
                                                                     <p className="text-xs text-gray-400 mt-1">{new Date(interaction.createdAt).toLocaleString('vi-VN')}</p>
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                ))
+                                    );
+                                })
                             )}
                         </div>
                     )}
