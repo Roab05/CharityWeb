@@ -1,5 +1,8 @@
 package group3.project.charityweb.advice;
 
+import group3.project.charityweb.chatbot.exception.ChatbotRateLimitException;
+import group3.project.charityweb.chatbot.exception.ChatbotUpstreamException;
+import group3.project.charityweb.chatbot.exception.ChatbotValidationException;
 import group3.project.charityweb.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -96,5 +99,23 @@ public class GlobalExceptionHandler {
                         "message", ex.getMessage(), // Hiển thị nguyên văn lời báo lỗi của bạn
                         "timestamp", LocalDateTime.now()
                 ));
+    }
+
+    @ExceptionHandler(ChatbotValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotValidation(ChatbotValidationException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(ChatbotRateLimitException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotRateLimit(ChatbotRateLimitException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(ChatbotUpstreamException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotUpstream(ChatbotUpstreamException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
     }
 }

@@ -49,6 +49,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/disbursements").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities/*/interactions").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/payments/callback").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/chatbot/ask").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/chatbot/suggestions").permitAll()
 
                         // 2. ADMIN APIs
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
