@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { updateMyProfile, getMyDonations, changePassword } from '../services/UserService';
+import { updateMyProfile, getMyDonations, getMyTransactions, changePassword } from '../services/UserService';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function ProfilePage() {
     const { user, refreshProfile } = useAuth();
     const [donations, setDonations] = useState([]);
+    const [transactions, setTransactions] = useState([]);
     const [activeTab, setActiveTab] = useState('info');
     const [loading, setLoading] = useState(true);
 
@@ -37,14 +38,18 @@ export default function ProfilePage() {
     }, [user]);
 
     useEffect(() => {
-        const fetchDonations = async () => {
+        const fetchData = async () => {
             try {
-                const res = await getMyDonations();
-                setDonations(res.data || []);
+                const [donRes, txnRes] = await Promise.allSettled([
+                    getMyDonations(),
+                    getMyTransactions(),
+                ]);
+                if (donRes.status === 'fulfilled') setDonations(donRes.value.data.content || []);
+                if (txnRes.status === 'fulfilled') setTransactions(txnRes.value.data.content || []);
             } catch { /* ignore */ }
             setLoading(false);
         };
-        fetchDonations();
+        fetchData();
     }, []);
 
     const handleUpdateProfile = async (e) => {
@@ -91,6 +96,7 @@ export default function ProfilePage() {
     const tabs = [
         { key: 'info', label: 'Thông tin cá nhân' },
         { key: 'donations', label: 'Lịch sử ủng hộ' },
+        { key: 'transactions', label: 'Lịch sử giao dịch' },
         { key: 'password', label: 'Đổi mật khẩu' },
     ];
 
@@ -129,8 +135,8 @@ export default function ProfilePage() {
                         key={tab.key}
                         onClick={() => setActiveTab(tab.key)}
                         className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${activeTab === tab.key
-                                ? 'border-primary-600 text-primary-600'
-                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                            ? 'border-primary-600 text-primary-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700'
                             }`}
                     >
                         {tab.label}
@@ -244,6 +250,37 @@ export default function ProfilePage() {
                                             </div>
                                         </div>
                                         <span className="text-primary-600 font-bold whitespace-nowrap">{formatCurrency(d.amount)}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Transactions Tab */}
+            {activeTab === 'transactions' && (
+                <div className="card p-6">
+                    <h2 className="text-lg font-semibold text-gray-800 mb-4">Lịch sử giao dịch</h2>
+                    {loading ? (
+                        <LoadingSpinner />
+                    ) : transactions.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">Chưa có giao dịch nào</p>
+                    ) : (
+                        <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                            {transactions.map((t, i) => {
+                                const isSuccess = t.paymentStatus === 0;
+                                return (
+                                    <div key={i} className="flex items-start justify-between p-4 bg-gray-50 rounded-xl">
+                                        <div className="flex-1 min-w-0 mr-4">
+                                            <p className="font-medium text-gray-800">{t.projectName}</p>
+                                            <p className="text-xs text-gray-500 mt-1">Cổng: {t.gatewayName}{t.gatewayTransactionNo ? ` • Mã GD: ${t.gatewayTransactionNo}` : ''}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs text-gray-400">{t.completedAt ? new Date(t.completedAt).toLocaleString('vi-VN') : (t.donationTime ? new Date(t.donationTime).toLocaleString('vi-VN') : '')}</span>
+                                                <span className={isSuccess ? 'badge-green' : 'badge-red'}>{isSuccess ? 'Thành công' : 'Thất bại'}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-primary-600 font-bold whitespace-nowrap">{formatCurrency(t.amount)}</span>
                                     </div>
                                 );
                             })}

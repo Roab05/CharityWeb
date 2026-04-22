@@ -62,21 +62,21 @@ export default function ProjectDetailPage() {
     const fetchActivities = async () => {
         try {
             const res = await getProjectActivities(projectId);
-            setActivities(res.data || []);
+            setActivities(res.data.content || []);
         } catch { /* ignore */ }
     };
 
     const fetchDonations = async () => {
         try {
             const res = await getProjectDonations(projectId);
-            setDonations(res.data || []);
+            setDonations(res.data.content || []);
         } catch { /* ignore */ }
     };
 
     const fetchDisbursements = async () => {
         try {
             const res = await getProjectDisbursementsFromProject(projectId);
-            setDisbursements(res.data || []);
+            setDisbursements(res.data.content || []);
         } catch { /* ignore */ }
     };
 
@@ -92,7 +92,7 @@ export default function ProjectDetailPage() {
     const fetchInteractions = async (activityId) => {
         try {
             const res = await getActivityInteractions(activityId);
-            setInteractionsByActivity((prev) => ({ ...prev, [activityId]: res.data || [] }));
+            setInteractionsByActivity((prev) => ({ ...prev, [activityId]: res.data.content || [] }));
         } catch { /* ignore */ }
     };
 
@@ -103,7 +103,7 @@ export default function ProjectDetailPage() {
             let imageURL = activityForm.imageURL;
             if (activityImageFile) {
                 const uploadRes = await uploadFile(activityImageFile);
-                imageURL = uploadRes.data;
+                imageURL = uploadRes.data.url;
             }
             await createActivity(projectId, { ...activityForm, imageURL });
             setActivityForm({ title: '', content: '', imageURL: '' });
@@ -202,7 +202,7 @@ export default function ProjectDetailPage() {
                         <div className="absolute top-4 left-4 flex gap-2">
                             <span className={statusCfg.className}>{statusCfg.label}</span>
                             {project.categories?.map((cat) => (
-                                <span key={cat.id || cat.categoryName} className="badge bg-white/90 text-gray-700 backdrop-blur-sm">{cat.categoryName}</span>
+                                <span key={cat} className="badge bg-white/90 text-gray-700 backdrop-blur-sm">{cat}</span>
                             ))}
                         </div>
                     </div>
@@ -223,8 +223,8 @@ export default function ProjectDetailPage() {
                                     if (tab.key === 'activities') activities.forEach((a) => fetchInteractions(a.activityId));
                                 }}
                                 className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
-                                        ? 'border-primary-600 text-primary-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    ? 'border-primary-600 text-primary-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}
                             >
                                 {tab.label}

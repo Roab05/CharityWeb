@@ -59,7 +59,7 @@ export default function ProjectCard({ project }) {
                 {project.categories?.length > 0 && (
                     <div className="absolute top-3 right-3">
                         <span className="badge bg-white/90 text-gray-700 backdrop-blur-sm">
-                            {project.categories[0].categoryName}
+                            {project.categories[0]}
                         </span>
                     </div>
                 )}
