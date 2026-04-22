@@ -1,4 +1,7 @@
+group3\project\charityweb\service\impl\InteractionServiceImplTest.class
 group3\project\charityweb\SecurityMatchersMockMvcTest$TestSecurityBeans.class
+group3\project\charityweb\chatbot\controller\ChatbotControllerTest.class
 group3\project\charityweb\chatbot\service\impl\ChatbotServiceImplTest.class
 group3\project\charityweb\SecurityMatchersMockMvcTest.class
-group3\project\charityweb\chatbot\controller\ChatbotControllerTest.class
+group3\project\charityweb\service\impl\ProjectServiceImplTest.class
+group3\project\charityweb\CharityWebApplicationTests.class

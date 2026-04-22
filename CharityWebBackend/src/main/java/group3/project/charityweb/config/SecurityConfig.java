@@ -57,6 +57,7 @@ public class SecurityConfig {
 
                         // 3. ORGANIZATION APIs
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/me/managed").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/activities").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/interactions")
