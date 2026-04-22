@@ -34,6 +34,25 @@ public class InteractionServiceImpl implements InteractionService {
         User user = (User) accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không hợp lệ"));
 
+        if (request.getType() == InteractionType.LIKE) {
+            Long deletedCount = interactionRepository.deleteByActivity_ActivityIdAndUser_IdAndType(
+                    activityId,
+                    user.getId(),
+                    InteractionType.LIKE
+            );
+            if (deletedCount != null && deletedCount > 0) {
+                return null;
+            }
+
+            ActivityInteraction newLike = new ActivityInteraction();
+            newLike.setActivity(activity);
+            newLike.setUser(user);
+            newLike.setType(InteractionType.LIKE);
+            newLike.setCreatedAt(LocalDateTime.now());
+            interactionRepository.save(newLike);
+            return newLike.getInteractionId();
+        }
+
         ActivityInteraction interaction = new ActivityInteraction();
         interaction.setActivity(activity);
         interaction.setUser(user);

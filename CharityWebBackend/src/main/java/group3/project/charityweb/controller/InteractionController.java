@@ -27,6 +27,10 @@ public class InteractionController {
 
         String interactionId = interactionService.createInteraction(principal.getName(), activityId, request);
 
+        if (interactionId == null) {
+            return ResponseEntity.ok(Map.of("message", "Đã bỏ like thành công."));
+        }
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
                         "message", "Đã gửi tương tác thành công.",
