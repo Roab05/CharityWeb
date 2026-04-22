@@ -42,17 +42,28 @@ public class SecurityConfig {
                         // 1. PUBLIC APIs
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/images/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/activities/**").permitAll()
-                        .requestMatchers("/api/v1/payments/callback").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/activities").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/donations").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/disbursements").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/activities/*/interactions").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/payments/callback").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/chatbot/ask").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/chatbot/suggestions").permitAll()
 
                         // 2. ADMIN APIs
                         .requestMatchers("/api/v1/admin/**").hasAuthority("ROLE_ADMIN")
 
                         // 3. ORGANIZATION APIs
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/me/managed").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/activities").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/interactions")
+                        .hasAnyAuthority("ROLE_INDIVIDUAL", "ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/interactions/*")
+                        .hasAnyAuthority("ROLE_INDIVIDUAL", "ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/activities/**").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/activities/**").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/disbursements").hasAuthority("ROLE_ORGANIZATION")
@@ -79,7 +90,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "Accept"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Áp dụng cho mọi API
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

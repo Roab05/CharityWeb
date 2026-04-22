@@ -3,6 +3,7 @@ package group3.project.charityweb.model.entity;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -56,6 +57,7 @@ public class Project {
 
     // Quan hệ nhiều-nhiều với Category
     @ManyToMany
+    @BatchSize(size = 50)
     @JoinTable(
             name = "project_category_project",
             joinColumns = @JoinColumn(name = "project_id"),
@@ -65,6 +67,7 @@ public class Project {
 
     // Quan hệ nhiều-nhiều với Organization (bảng trung gian Organization_Project)
     @ManyToMany
+    @BatchSize(size = 50)
     @JoinTable(
             name = "organization_project",
             joinColumns = @JoinColumn(name = "project_id"),

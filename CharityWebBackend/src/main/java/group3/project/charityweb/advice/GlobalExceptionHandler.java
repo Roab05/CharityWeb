@@ -1,10 +1,15 @@
 package group3.project.charityweb.advice;
 
+import group3.project.charityweb.chatbot.exception.ChatbotRateLimitException;
+import group3.project.charityweb.chatbot.exception.ChatbotUpstreamException;
+import group3.project.charityweb.chatbot.exception.ChatbotValidationException;
 import group3.project.charityweb.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import group3.project.charityweb.model.dto.response.ApiErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -67,6 +72,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(buildErrorResponse(status, "Sai tên đăng nhập hoặc mật khẩu", request));
     }
 
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ApiErrorResponse> handleDisabled(DisabledException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ApiErrorResponse> handleLocked(LockedException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -82,5 +99,23 @@ public class GlobalExceptionHandler {
                         "message", ex.getMessage(), // Hiển thị nguyên văn lời báo lỗi của bạn
                         "timestamp", LocalDateTime.now()
                 ));
+    }
+
+    @ExceptionHandler(ChatbotValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotValidation(ChatbotValidationException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(ChatbotRateLimitException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotRateLimit(ChatbotRateLimitException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.TOO_MANY_REQUESTS;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
+    }
+
+    @ExceptionHandler(ChatbotUpstreamException.class)
+    public ResponseEntity<ApiErrorResponse> handleChatbotUpstream(ChatbotUpstreamException ex, HttpServletRequest request) {
+        HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
+        return ResponseEntity.status(status).body(buildErrorResponse(status, ex.getMessage(), request));
     }
 }

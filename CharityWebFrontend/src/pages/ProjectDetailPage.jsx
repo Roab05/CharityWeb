@@ -124,6 +124,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
             });
             setDisbursementForm({ amount: '', reason: '', evidenceURL: '', recipientInfo: '' });
             setShowDisbursementForm(false);
+            alert('Yêu cầu giải ngân đã được gửi đến Quản trị viên để xét duyệt!');
             fetchDisbursements();
         } catch { /* ignore */ }
         setDisbursementLoading(false);
@@ -252,6 +253,34 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Show activities in About tab as "Bài đăng cập nhật" */}
+                            {activities.length > 0 && (
+                                <div className="mt-10 border-t pt-8">
+                                    <h2 className="text-xl font-bold text-gray-800 mb-6">Cập nhật dự án</h2>
+                                    <div className="space-y-6">
+                                        {activities.map((activity) => (
+                                            <div key={activity.activityId} className="card p-6 bg-gray-50">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
+                                                    <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                                                        {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                                    </span>
+                                                </div>
+                                                {activity.imageURL && (
+                                                    <img
+                                                        src={getImageUrl(activity.imageURL)}
+                                                        alt={activity.title}
+                                                        className="w-full h-48 object-cover rounded-lg mb-3"
+                                                        onError={(e) => { e.target.style.display = 'none'; }}
+                                                    />
+                                                )}
+                                                <p className="text-gray-600 whitespace-pre-line">{activity.content}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -305,7 +334,12 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                             ) : (
                                 activities.map((activity) => (
                                     <div key={activity.activityId} className="card p-6">
-                                        <h3 className="font-semibold text-gray-800 text-lg mb-2">{activity.title}</h3>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
+                                            <span className="text-sm text-gray-500">
+                                                {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                            </span>
+                                        </div>
                                         {activity.imageURL && (
                                             <img
                                                 src={getImageUrl(activity.imageURL)}

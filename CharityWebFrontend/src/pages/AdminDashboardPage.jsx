@@ -31,6 +31,8 @@ export default function AdminDashboardPage() {
     const [categoryLoading, setCategoryLoading] = useState(false);
     const [categoryError, setCategoryError] = useState('');
     const [categorySuccess, setCategorySuccess] = useState('');
+    const [editingCategory, setEditingCategory] = useState(null);
+    const [editForm, setEditForm] = useState({ categoryName: '', description: '' });
 
     // Confirm modal
     const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null });
@@ -106,6 +108,25 @@ export default function AdminDashboardPage() {
             setCategoryError(err.response?.data?.message || 'Không thể tạo danh mục. Vui lòng thử lại.');
         }
         setCategoryLoading(false);
+    };
+
+    const handleEditCategoryClick = (cat) => {
+        setEditingCategory(cat.id);
+        setEditForm({ categoryName: cat.categoryName, description: cat.description || '' });
+    };
+
+    const handleUpdateCategory = async (e, id) => {
+        e.preventDefault();
+        setCategoryError('');
+        setCategorySuccess('');
+        try {
+            await updateCategory(id, editForm);
+            setEditingCategory(null);
+            setCategorySuccess('Cập nhật danh mục thành công.');
+            await fetchAll();
+        } catch (err) {
+            setCategoryError(err.response?.data?.message || 'Không thể cập nhật danh mục. Vui lòng thử lại.');
+        }
     };
 
     if (loading) return <div className="min-h-screen flex items-center justify-center"><LoadingSpinner size="lg" text="Đang tải..." /></div>;
@@ -348,10 +369,42 @@ export default function AdminDashboardPage() {
                         ) : (
                             <div className="space-y-3">
                                 {categories.map((cat) => (
-                                    <div key={cat.id} className="border border-gray-200 rounded-lg p-3">
-                                        <p className="font-medium text-gray-800">{cat.categoryName}</p>
-                                        <p className="text-xs text-gray-500 mt-1">ID: {cat.id}</p>
-                                        {cat.description && <p className="text-sm text-gray-600 mt-1">{cat.description}</p>}
+                                    <div key={cat.id} className="border border-gray-200 rounded-lg p-4 flex justify-between items-start hover:border-primary-300 transition-colors">
+                                        {editingCategory === cat.id ? (
+                                            <form className="w-full flex flex-col gap-3" onSubmit={(e) => handleUpdateCategory(e, cat.id)}>
+                                                <input
+                                                    type="text"
+                                                    className="input-field"
+                                                    value={editForm.categoryName}
+                                                    onChange={(e) => setEditForm({...editForm, categoryName: e.target.value})}
+                                                    required
+                                                />
+                                                <textarea
+                                                    className="input-field resize-none"
+                                                    rows="2"
+                                                    value={editForm.description}
+                                                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button type="submit" className="px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700">Lưu</button>
+                                                    <button type="button" onClick={() => setEditingCategory(null)} className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-300">Hủy</button>
+                                                </div>
+                                            </form>
+                                        ) : (
+                                            <>
+                                                <div className="flex-1">
+                                                    <p className="font-semibold text-gray-800 text-lg">{cat.categoryName}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">ID: {cat.id}</p>
+                                                    {cat.description && <p className="text-sm text-gray-600 mt-2">{cat.description}</p>}
+                                                </div>
+                                                <button
+                                                    onClick={() => handleEditCategoryClick(cat)}
+                                                    className="ml-4 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 rounded-lg hover:bg-primary-100 transition-colors"
+                                                >
+                                                    Sửa
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>

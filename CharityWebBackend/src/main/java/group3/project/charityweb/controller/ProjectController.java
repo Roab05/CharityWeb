@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -46,9 +45,14 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @GetMapping("/categories")
-    public ResponseEntity<List<ProjectCategoryResponse>> getCategories() {
-        return ResponseEntity.ok(projectService.getAllCategories());
+    @GetMapping("/me/managed")
+    public ResponseEntity<Page<ProjectResponse>> getMyManagedProjects(
+            Principal principal,
+            @RequestParam(required = false) ProjectStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ProjectResponse> projects = projectService.getMyManagedProjects(principal.getName(), status, page, size);
+        return ResponseEntity.ok(projects);
     }
 
     @GetMapping("/{projectId}")
@@ -70,8 +74,11 @@ public class ProjectController {
     }
 
     @GetMapping("/{projectId}/activities")
-    public ResponseEntity<List<ActivityResponse>> getActivities(@PathVariable String projectId) {
-        List<ActivityResponse> activities = activityService.getProjectActivities(projectId);
+    public ResponseEntity<Page<ActivityResponse>> getActivities(
+            @PathVariable String projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<ActivityResponse> activities = activityService.getProjectActivities(projectId, page, size);
         return ResponseEntity.ok(activities);
     }
 }
