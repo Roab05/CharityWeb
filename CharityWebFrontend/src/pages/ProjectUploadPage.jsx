@@ -55,7 +55,7 @@ export default function ProjectUploadPage() {
             let backgroundImageURL = formData.backgroundImageURL;
             if (imageFile) {
                 const uploadRes = await uploadFile(imageFile);
-                backgroundImageURL = uploadRes.data;
+                backgroundImageURL = uploadRes.data.url;
             }
 
             await createProject({

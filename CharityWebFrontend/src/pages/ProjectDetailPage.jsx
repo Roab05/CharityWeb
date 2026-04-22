@@ -62,21 +62,21 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const fetchActivities = async () => {
         try {
             const res = await getProjectActivities(projectId);
-            setActivities(res.data || []);
+            setActivities(res.data.content || []);
         } catch { /* ignore */ }
     };
 
     const fetchDonations = async () => {
         try {
             const res = await getProjectDonations(projectId);
-            setDonations(res.data || []);
+            setDonations(res.data.content || []);
         } catch { /* ignore */ }
     };
 
     const fetchDisbursements = async () => {
         try {
             const res = await getProjectDisbursementsFromProject(projectId);
-            setDisbursements(res.data || []);
+            setDisbursements(res.data.content || []);
         } catch { /* ignore */ }
     };
 
@@ -108,7 +108,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
             let imageURL = activityForm.imageURL;
             if (activityImageFile) {
                 const uploadRes = await uploadFile(activityImageFile);
-                imageURL = uploadRes.data;
+                imageURL = uploadRes.data.url;
             }
             await createActivity(projectId, { ...activityForm, imageURL });
             setActivityForm({ title: '', content: '', imageURL: '' });
@@ -225,7 +225,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                         <div className="absolute top-4 left-4 flex gap-2">
                             <span className={statusCfg.className}>{statusCfg.label}</span>
                             {project.categories?.map((cat) => (
-                                <span key={cat.id || cat.categoryName} className="badge bg-white/90 text-gray-700 backdrop-blur-sm">{cat.categoryName}</span>
+                                <span key={cat} className="badge bg-white/90 text-gray-700 backdrop-blur-sm">{cat}</span>
                             ))}
                         </div>
                     </div>
