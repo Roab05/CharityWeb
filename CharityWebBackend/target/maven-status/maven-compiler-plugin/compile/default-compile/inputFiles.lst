@@ -1,5 +1,6 @@
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\advice\GlobalExceptionHandler.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\CharityWebApplication.java
+D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\chatbot\client\dto\GeminiGenerationResult.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\chatbot\client\dto\GeminiRequest.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\chatbot\client\dto\GeminiResponse.java
 D:\Project\LTW_CharityWeb\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\chatbot\client\GeminiClient.java
