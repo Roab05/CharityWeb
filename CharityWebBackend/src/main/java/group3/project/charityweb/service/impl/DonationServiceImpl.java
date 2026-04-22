@@ -15,6 +15,8 @@ import group3.project.charityweb.service.DonationService;
 import group3.project.charityweb.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,11 +68,15 @@ public class DonationServiceImpl implements DonationService {
     }
 
     @Override
-    public List<DonationResponse> getProjectDonations(String projectId) {
-        // Chỉ lấy trạng thái 1 (Thành công)
-        List<Donation> donations = donationRepository.findByProject_ProjectIdAndStatusOrderByDonationTimeDesc(projectId, DonationStatus.SUCCESS);
+    public Page<DonationResponse> getProjectDonations(String projectId, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Donation> donations = donationRepository.findByProject_ProjectIdAndStatusOrderByDonationTimeDesc(
+                projectId,
+                DonationStatus.SUCCESS,
+                pageRequest
+        );
 
-        return donations.stream().map(d -> {
+        return donations.map(d -> {
             String donorName = "Nhà hảo tâm ẩn danh";
             if (d.getUser() instanceof Individual ind) donorName = ind.getFullName();
             else if (d.getUser() instanceof Organization org) donorName = org.getName();
@@ -81,6 +87,6 @@ public class DonationServiceImpl implements DonationService {
                     .message(d.getMessage())
                     .donationTime(d.getDonationTime())
                     .build();
-        }).collect(Collectors.toList());
+        });
     }
 }

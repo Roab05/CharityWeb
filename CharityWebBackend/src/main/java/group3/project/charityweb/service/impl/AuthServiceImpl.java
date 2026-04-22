@@ -100,15 +100,18 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Map<String, Object> authenticate(LoginRequest request) {
+        String normalizedUsername = request.getUsername() == null ? null : request.getUsername().trim();
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
+                new UsernamePasswordAuthenticationToken(normalizedUsername, request.getPassword())
         );
 
         // 2. Sinh ra cặp Token
         String accessToken = jwtTokenProvider.generateAccessToken(authentication);
         String refreshToken = jwtTokenProvider.generateRefreshToken(authentication);
 
-        Object userProfile = userService.getMyProfile(request.getUsername());
+        String authenticatedUsername = authentication.getName();
+        Object userProfile = userService.getMyProfile(authenticatedUsername);
 
         return Map.of(
                 "accessToken", accessToken,

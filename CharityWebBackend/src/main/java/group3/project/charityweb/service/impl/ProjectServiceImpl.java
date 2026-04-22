@@ -61,6 +61,7 @@ public class ProjectServiceImpl implements ProjectService {
         return project.getProjectId();
     }
 
+    @Transactional(readOnly = true)
     public Page<ProjectResponse> getAllProjects(ProjectStatus status, String categoryId, int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size);
         Page<Project> projectPage;

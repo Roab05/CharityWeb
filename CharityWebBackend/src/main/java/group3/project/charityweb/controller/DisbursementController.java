@@ -4,12 +4,12 @@ import group3.project.charityweb.model.dto.request.DisbursementRequest;
 import group3.project.charityweb.model.dto.response.DisbursementResponse;
 import group3.project.charityweb.service.DisbursementService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,8 +35,11 @@ public class DisbursementController {
     }
 
     @GetMapping("/projects/{projectId}/disbursements")
-    public ResponseEntity<List<DisbursementResponse>> getProjectDisbursements(@PathVariable String projectId) {
-        List<DisbursementResponse> responses = disbursementService.getProjectDisbursements(projectId);
+    public ResponseEntity<Page<DisbursementResponse>> getProjectDisbursements(
+            @PathVariable String projectId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<DisbursementResponse> responses = disbursementService.getProjectDisbursements(projectId, page, size);
         return ResponseEntity.ok(responses);
     }
 

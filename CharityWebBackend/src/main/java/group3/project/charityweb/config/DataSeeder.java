@@ -9,14 +9,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Configuration
 public class DataSeeder {
 
     @Bean
     public CommandLineRunner initData(AccountRepository accountRepository, PasswordEncoder passwordEncoder) {
-        return args -> {
+        return _ -> {
             if (!accountRepository.existsByUsername("admin")) {
                 Admin admin = new Admin();
                 admin.setUsername("admin");

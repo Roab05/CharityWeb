@@ -1,22 +1,23 @@
 package group3.project.charityweb.service.impl;
 
 import group3.project.charityweb.model.dto.request.ChangePasswordRequest;
-import group3.project.charityweb.repository.UserRepository;
 import group3.project.charityweb.service.UserService;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.model.dto.request.UpdateProfileRequest;
 import group3.project.charityweb.model.dto.response.DonationHistoryResponse;
+import group3.project.charityweb.model.dto.response.TransactionHistoryResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
 import group3.project.charityweb.model.entity.*;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.DonationRepository;
+import group3.project.charityweb.repository.TransactionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,7 @@ public class UserServiceImpl implements UserService {
 
     private final AccountRepository accountRepository;
     private final DonationRepository donationRepository;
+    private final TransactionRepository transactionRepository;
     private final PasswordEncoder passwordEncoder;
 
     public UserProfileResponse getMyProfile(String username) {
@@ -36,7 +38,7 @@ public class UserServiceImpl implements UserService {
                 .status(account.getStatus());
 
         switch (account) {
-            case Admin admin -> builder.roleType("ADMIN");
+            case Admin ignored -> builder.roleType("ADMIN");
             case Individual individual -> builder.roleType("INDIVIDUAL")
                     .email(individual.getEmail())
                     .phone(individual.getPhone())
@@ -83,6 +85,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "userDetailsByUsername", key = "#username")
     public void changePassword(String username, ChangePasswordRequest request) {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản."));
@@ -99,17 +102,18 @@ public class UserServiceImpl implements UserService {
         accountRepository.save(account);
     }
 
-    public List<DonationHistoryResponse> getMyDonations(String username) {
+    public Page<DonationHistoryResponse> getMyDonations(String username, int page, int size) {
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
 
         if (account instanceof Admin) {
-            return List.of();
+            return Page.empty();
         }
 
-        List<Donation> donations = donationRepository.findByUser_IdOrderByDonationTimeDesc(account.getId());
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Donation> donations = donationRepository.findByUser_IdOrderByDonationTimeDesc(account.getId(), pageRequest);
 
-        return donations.stream().map(donation -> DonationHistoryResponse.builder()
+        return donations.map(donation -> DonationHistoryResponse.builder()
                 .donationId(donation.getDonationId())
                 .projectId(donation.getProject().getProjectId())
                 .projectName(donation.getProject().getProjectName())
@@ -118,6 +122,36 @@ public class UserServiceImpl implements UserService {
                 .message(donation.getMessage())
                 .status(donation.getStatus())
                 .build()
-        ).collect(Collectors.toList());
+        );
+    }
+
+    @Override
+    public Page<TransactionHistoryResponse> getMyTransactions(String username, int page, int size) {
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tài khoản"));
+
+        if (account instanceof Admin) {
+            return Page.empty();
+        }
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Transaction> transactions = transactionRepository.findByDonation_User_IdOrderByCompletedAtDesc(account.getId(), pageRequest);
+
+        return transactions.map(transaction -> {
+            Donation donation = transaction.getDonation();
+            return TransactionHistoryResponse.builder()
+                    .transactionId(transaction.getTransactionId())
+                    .donationId(donation.getDonationId())
+                    .projectId(donation.getProject().getProjectId())
+                    .projectName(donation.getProject().getProjectName())
+                    .gatewayName(transaction.getGatewayName())
+                    .gatewayTransactionNo(transaction.getGatewayTransactionNo())
+                    .amount(transaction.getAmount())
+                    .paymentStatus(transaction.getPaymentStatus())
+                    .completedAt(transaction.getCompletedAt())
+                    .donationTime(donation.getDonationTime())
+                    .donationStatus(donation.getStatus())
+                    .build();
+        });
     }
 }

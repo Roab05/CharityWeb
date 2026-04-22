@@ -12,6 +12,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -28,17 +30,17 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Không tìm thấy người dùng với username: " + username));
 
         if (account.getStatus() == AccountStatus.BANNED) {
-            throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
+            throw new LockedException("Tài khoản của bạn đã bị khóa!");
         } else if (account.getStatus() == AccountStatus.PENDING) {
-            throw new RuntimeException("Tài khoản đang chờ Admin phê duyệt!");
+            throw new DisabledException("Tài khoản đang chờ Admin phê duyệt!");
         }
 
         String roleName = "ROLE_USER";
 
         switch (account) {
-            case Admin admin -> roleName = "ROLE_ADMIN";
-            case Organization organization -> roleName = "ROLE_ORGANIZATION";
-            case Individual individual -> roleName = "ROLE_INDIVIDUAL";
+            case Admin ignored -> roleName = "ROLE_ADMIN";
+            case Organization ignored -> roleName = "ROLE_ORGANIZATION";
+            case Individual ignored -> roleName = "ROLE_INDIVIDUAL";
             default -> {
             }
         }

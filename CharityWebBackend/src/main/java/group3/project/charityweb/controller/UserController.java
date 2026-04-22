@@ -3,14 +3,15 @@ package group3.project.charityweb.controller;
 import group3.project.charityweb.model.dto.request.ChangePasswordRequest;
 import group3.project.charityweb.model.dto.request.UpdateProfileRequest;
 import group3.project.charityweb.model.dto.response.DonationHistoryResponse;
+import group3.project.charityweb.model.dto.response.TransactionHistoryResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
 import group3.project.charityweb.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -33,8 +34,20 @@ public class UserController {
     }
 
     @GetMapping("/me/donations")
-    public ResponseEntity<List<DonationHistoryResponse>> getMyDonations(Principal principal) {
-        List<DonationHistoryResponse> responses = userService.getMyDonations(principal.getName());
+    public ResponseEntity<Page<DonationHistoryResponse>> getMyDonations(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<DonationHistoryResponse> responses = userService.getMyDonations(principal.getName(), page, size);
+        return ResponseEntity.ok(responses);
+    }
+
+    @GetMapping("/me/transactions")
+    public ResponseEntity<Page<TransactionHistoryResponse>> getMyTransactions(
+            Principal principal,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<TransactionHistoryResponse> responses = userService.getMyTransactions(principal.getName(), page, size);
         return ResponseEntity.ok(responses);
     }
 
