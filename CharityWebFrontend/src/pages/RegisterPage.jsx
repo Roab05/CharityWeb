@@ -10,6 +10,17 @@ export default function RegisterPage() {
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const getRegisterErrorMessage = (err) => {
+        if (!err.response) {
+            return 'Không thể kết nối đến máy chủ (http://localhost:8080). Hãy bật backend rồi thử lại.';
+        }
+        const data = err.response.data;
+        if (typeof data === 'string' && data.trim()) {
+            return data;
+        }
+        return data?.message || data?.error || `Đăng ký thất bại (HTTP ${err.response.status}).`;
+    };
+
     const [indivForm, setIndivForm] = useState({
         username: '', password: '', email: '', phone: '', fullName: '', address: '',
     });
@@ -27,7 +38,7 @@ export default function RegisterPage() {
             setSuccess('Đăng ký thành công! Tài khoản đang chờ kích hoạt.');
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(getRegisterErrorMessage(err));
         }
         setLoading(false);
     };
@@ -41,7 +52,7 @@ export default function RegisterPage() {
             setSuccess('Đăng ký tổ chức thành công! Vui lòng chờ quản trị viên xác minh.');
             setTimeout(() => navigate('/'), 2000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(getRegisterErrorMessage(err));
         }
         setLoading(false);
     };

@@ -42,6 +42,7 @@ public class SecurityConfig {
                         // 1. PUBLIC APIs
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/activities/**").permitAll()
                         .requestMatchers("/api/v1/payments/callback").permitAll()

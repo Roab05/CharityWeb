@@ -18,6 +18,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -36,6 +37,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final DonationRepository donationRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private static final String PAYMENT_RESULT_URL = "http://localhost:3000/payment/result";
 
     @Override
     public String createPaymentUrl(Transaction transaction, HttpServletRequest request) {
@@ -91,7 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
-    public void processCallback(HttpServletRequest request) {
+    public String processCallback(HttpServletRequest request) {
         String vnp_ResponseCode = request.getParameter("vnp_ResponseCode");
         String vnp_TxnRef = request.getParameter("vnp_TxnRef"); // Đây chính là Transaction ID
         String vnp_TransactionNo = request.getParameter("vnp_TransactionNo"); // Mã của VNPAY
@@ -124,9 +126,17 @@ public class PaymentServiceImpl implements PaymentService {
             transaction.getDonation().setStatus(DonationStatus.FAILED);
 
             transactionRepository.save(transaction);
-
-            throw new PaymentFailedException("Giao dịch bị hủy hoặc thanh toán thất bại từ phía VNPAY (Mã lỗi: " + vnp_ResponseCode + ")");
         }
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(PAYMENT_RESULT_URL)
+                .queryParam("vnp_ResponseCode", vnp_ResponseCode)
+                .queryParam("vnp_TxnRef", vnp_TxnRef);
+
+        if (vnp_TransactionNo != null && !vnp_TransactionNo.isBlank()) {
+            builder.queryParam("vnp_TransactionNo", vnp_TransactionNo);
+        }
+
+        return builder.toUriString();
     }
 
     // Hàm Hash SHA-512 chuẩn của VNPAY

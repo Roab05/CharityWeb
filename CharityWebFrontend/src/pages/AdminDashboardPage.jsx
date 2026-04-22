@@ -7,6 +7,7 @@ import {
     getPendingProjects,
     approveProject,
     createCategory,
+    getCategories,
     updateCategory,
     getPendingDisbursements,
     updateDisbursementStatus,
@@ -21,12 +22,15 @@ export default function AdminDashboardPage() {
     const [pendingOrgs, setPendingOrgs] = useState([]);
     const [pendingProjects, setPendingProjects] = useState([]);
     const [pendingDisbursements, setPendingDisbursements] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Category management
     const [showCategoryForm, setShowCategoryForm] = useState(false);
     const [categoryForm, setCategoryForm] = useState({ categoryName: '', description: '' });
     const [categoryLoading, setCategoryLoading] = useState(false);
+    const [categoryError, setCategoryError] = useState('');
+    const [categorySuccess, setCategorySuccess] = useState('');
 
     // Confirm modal
     const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null });
@@ -37,16 +41,18 @@ export default function AdminDashboardPage() {
     const fetchAll = async () => {
         setLoading(true);
         try {
-            const [statsRes, orgsRes, projectsRes, disbRes] = await Promise.allSettled([
+            const [statsRes, orgsRes, projectsRes, disbRes, categoriesRes] = await Promise.allSettled([
                 getStatistics(),
                 getPendingOrganizations(),
                 getPendingProjects(),
                 getPendingDisbursements(),
+                getCategories(),
             ]);
             if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
             if (orgsRes.status === 'fulfilled') setPendingOrgs(orgsRes.value.data || []);
             if (projectsRes.status === 'fulfilled') setPendingProjects(projectsRes.value.data || []);
             if (disbRes.status === 'fulfilled') setPendingDisbursements(disbRes.value.data || []);
+            if (categoriesRes.status === 'fulfilled') setCategories(categoriesRes.value.data || []);
         } catch { /* ignore */ }
         setLoading(false);
     };
@@ -87,12 +93,18 @@ export default function AdminDashboardPage() {
 
     const handleCreateCategory = async (e) => {
         e.preventDefault();
+        setCategoryError('');
+        setCategorySuccess('');
         setCategoryLoading(true);
         try {
             await createCategory(categoryForm);
             setCategoryForm({ categoryName: '', description: '' });
             setShowCategoryForm(false);
-        } catch { /* ignore */ }
+            setCategorySuccess('Tạo danh mục thành công.');
+            await fetchAll();
+        } catch (err) {
+            setCategoryError(err.response?.data?.message || 'Không thể tạo danh mục. Vui lòng thử lại.');
+        }
         setCategoryLoading(false);
     };
 
@@ -103,7 +115,7 @@ export default function AdminDashboardPage() {
         { key: 'organizations', label: `🏢 Tổ chức (${pendingOrgs.length})` },
         { key: 'projects', label: `📋 Dự án (${pendingProjects.length})` },
         { key: 'disbursements', label: `💰 Giải ngân (${pendingDisbursements.length})` },
-        { key: 'categories', label: '📂 Danh mục' },
+        { key: 'categories', label: `📂 Danh mục (${categories.length})` },
     ];
 
     return (
@@ -293,6 +305,12 @@ export default function AdminDashboardPage() {
             {/* Categories */}
             {activeTab === 'categories' && (
                 <div>
+                    {categoryError && (
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">{categoryError}</div>
+                    )}
+                    {categorySuccess && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-4 text-sm">{categorySuccess}</div>
+                    )}
                     {!showCategoryForm ? (
                         <button onClick={() => setShowCategoryForm(true)} className="btn-primary text-sm mb-6">+ Tạo danh mục mới</button>
                     ) : (
@@ -321,6 +339,23 @@ export default function AdminDashboardPage() {
                     )}
                     <div className="bg-blue-50 rounded-xl p-4 text-sm text-blue-700">
                         💡 Danh mục được sử dụng để phân loại dự án. Bạn có thể tạo danh mục mới tại đây.
+                    </div>
+
+                    <div className="mt-6 card p-6">
+                        <h3 className="font-semibold text-gray-800 mb-4">Danh sách danh mục ({categories.length})</h3>
+                        {categories.length === 0 ? (
+                            <p className="text-sm text-gray-500">Chưa có danh mục nào.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {categories.map((cat) => (
+                                    <div key={cat.id} className="border border-gray-200 rounded-lg p-3">
+                                        <p className="font-medium text-gray-800">{cat.categoryName}</p>
+                                        <p className="text-xs text-gray-500 mt-1">ID: {cat.id}</p>
+                                        {cat.description && <p className="text-sm text-gray-600 mt-1">{cat.description}</p>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

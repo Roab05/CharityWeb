@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../services/ProjectService';
 import { uploadFile } from '../services/FileService';
+import { getProjectCategories } from '../services/CategoryService';
 
 export default function ProjectUploadPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const [categories, setCategories] = useState([]);
     const [formData, setFormData] = useState({
         projectName: '',
         description: '',
@@ -15,12 +17,24 @@ export default function ProjectUploadPage() {
         endDate: '',
         backgroundImageURL: '',
         bankAccountNo: '',
-        categoryIds: [],
+        categoryId: '',
     });
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await getProjectCategories();
+                setCategories(res.data || []);
+            } catch {
+                setCategories([]);
+            }
+        };
+        fetchCategories();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -30,6 +44,12 @@ export default function ProjectUploadPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!formData.categoryId) {
+            setError('Vui lòng chọn danh mục cho dự án.');
+            return;
+        }
+
         setLoading(true);
         try {
             let backgroundImageURL = formData.backgroundImageURL;
@@ -42,6 +62,7 @@ export default function ProjectUploadPage() {
                 ...formData,
                 targetAmount: parseFloat(formData.targetAmount),
                 backgroundImageURL,
+                categoryIds: [formData.categoryId],
             });
 
             setSuccess('Dự án đã được tạo thành công! Đang chờ quản trị viên phê duyệt.');
@@ -141,6 +162,28 @@ export default function ProjectUploadPage() {
                             min={formData.startDate || today}
                         />
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục dự án <span className="text-red-500">*</span></label>
+                    {categories.length === 0 ? (
+                        <p className="text-sm text-gray-500">Chưa có danh mục nào trong hệ thống. Vui lòng liên hệ quản trị viên để tạo danh mục.</p>
+                    ) : (
+                        <select
+                            name="categoryId"
+                            className="input-field"
+                            value={formData.categoryId}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="">-- Chọn danh mục --</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.categoryName}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </div>
 
                 <div>

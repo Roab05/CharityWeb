@@ -18,7 +18,7 @@ const STATUS_CONFIG = {
     SUSPENDED: { label: 'Tạm dừng', className: 'badge-gray' },
 };
 
-export default function ProjectDetailPage() {
+export default function ProjectDetailPage({ isManageMode = false }) {
     const { projectId } = useParams();
     const { user } = useAuth();
     const [project, setProject] = useState(null);
@@ -174,9 +174,9 @@ export default function ProjectDetailPage() {
 
     const tabs = [
         { key: 'about', label: 'Giới thiệu' },
-        { key: 'activities', label: `Cập nhật (${activities.length})` },
+        ...(isManageMode ? [{ key: 'activities', label: `Cập nhật (${activities.length})` }] : []),
         { key: 'donations', label: `Ủng hộ (${donations.length})` },
-        { key: 'disbursements', label: `Giải ngân (${disbursements.length})` },
+        ...(isManageMode ? [{ key: 'disbursements', label: `Giải ngân (${disbursements.length})` }] : []),
     ];
 
     return (
@@ -214,7 +214,7 @@ export default function ProjectDetailPage() {
                     )}
 
                     {/* Tabs */}
-                    <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
+                    <div className={`grid ${isManageMode ? 'grid-cols-4 overflow-x-auto' : 'grid-cols-2'} border-b border-gray-200 mb-6`}>
                         {tabs.map((tab) => (
                             <button
                                 key={tab.key}
@@ -222,7 +222,7 @@ export default function ProjectDetailPage() {
                                     setActiveTab(tab.key);
                                     if (tab.key === 'activities') activities.forEach((a) => fetchInteractions(a.activityId));
                                 }}
-                                className={`px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
+                                className={`w-full px-4 py-3 text-sm font-medium text-center whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
                                         ? 'border-primary-600 text-primary-600'
                                         : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}

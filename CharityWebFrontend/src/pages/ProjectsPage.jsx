@@ -1,18 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
 import { getProjects } from '../services/ProjectService';
 import ProjectCard from '../components/ProjectCard';
 import Pagination from '../components/Pagination';
 import LoadingSpinner from '../components/LoadingSpinner';
 
-const STATUS_OPTIONS = [
+
+const ALL_STATUS_OPTIONS = [
     { value: '', label: 'Tất cả trạng thái' },
     { value: 'ACTIVE', label: 'Đang gây quỹ' },
     { value: 'COMPLETED', label: 'Đã hoàn thành' },
     { value: 'PENDING', label: 'Chờ duyệt' },
 ];
 
+const INDIVIDUAL_STATUS_OPTIONS = [
+    { value: '', label: 'Tất cả trạng thái' },
+    { value: 'ACTIVE', label: 'Đang gây quỹ' },
+    { value: 'COMPLETED', label: 'Đã hoàn thành' },
+];
+
 export default function ProjectsPage() {
+    const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
     const [projects, setProjects] = useState([]);
     const [totalPages, setTotalPages] = useState(0);
@@ -22,7 +31,14 @@ export default function ProjectsPage() {
     const status = searchParams.get('status') || 'ACTIVE';
     const categoryId = searchParams.get('categoryId') || '';
 
+    // Chỉ cho phép cá nhân xem ACTIVE/COMPLETED, không cho xem PENDING
+    const statusOptions = user?.roleType === 'INDIVIDUAL' ? INDIVIDUAL_STATUS_OPTIONS : ALL_STATUS_OPTIONS;
+
+    // Nếu là cá nhân và status đang là PENDING thì ép về ACTIVE
     useEffect(() => {
+        if (user?.roleType === 'INDIVIDUAL' && (status === 'PENDING' || status === 'REJECTED')) {
+            updateParams({ status: 'ACTIVE' });
+        }
         const fetchProjects = async () => {
             setLoading(true);
             try {
@@ -62,7 +78,7 @@ export default function ProjectsPage() {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-3 mb-8">
-                {STATUS_OPTIONS.map((opt) => (
+                {statusOptions.map((opt) => (
                     <button
                         key={opt.value}
                         onClick={() => updateParams({ status: opt.value })}

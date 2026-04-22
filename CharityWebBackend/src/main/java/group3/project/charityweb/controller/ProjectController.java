@@ -3,6 +3,7 @@ package group3.project.charityweb.controller;
 import group3.project.charityweb.model.dto.request.ActivityRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
+import group3.project.charityweb.model.dto.response.ProjectCategoryResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ActivityService;
@@ -43,6 +44,11 @@ public class ProjectController {
             @RequestParam(defaultValue = "10") int size) {
         Page<ProjectResponse> projects = projectService.getAllProjects(status, categoryId, page, size);
         return ResponseEntity.ok(projects);
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<ProjectCategoryResponse>> getCategories() {
+        return ResponseEntity.ok(projectService.getAllCategories());
     }
 
     @GetMapping("/{projectId}")

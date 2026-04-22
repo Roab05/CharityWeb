@@ -10,7 +10,7 @@ const STATUS_CONFIG = {
     SUSPENDED: { label: 'Tạm dừng', className: 'badge-gray' },
 };
 
-export default function ProjectCard({ project }) {
+export default function ProjectCard({ project, isOwner = false }) {
     const navigate = useNavigate();
 
     const progress = project.targetAmount > 0
@@ -44,7 +44,7 @@ export default function ProjectCard({ project }) {
     return (
         <div
             className="card overflow-hidden cursor-pointer group"
-            onClick={() => navigate(`/projects/${project.projectId}`)}
+            onClick={() => navigate(isOwner ? `/my-projects/${project.projectId}` : `/projects/${project.projectId}`)}
         >
             <div className="relative overflow-hidden">
                 <img

@@ -1,22 +1,104 @@
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\advice\ProjectsAdvice.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\advice\UsersAdvice.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\CharityWebApplication.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\configuration\SecurityConfig.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\DonationsController.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\ProjectsController.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\UsersController.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\dto\LoginDto.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\dto\MessageDto.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\dto\ProjectUpdateDto.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\dto\UserUpdateDto.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\ProjectNotFoundException.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\UserNotFoundException.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\Donations.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\Projects.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\Users.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\DonationsRepository.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\ProjectsRepository.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\UsersRepository.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\DonationsService.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\ProjectsService.java
-D:\ReactJS and Spring Boot\Projects\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\UsersService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\advice\GlobalExceptionHandler.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\CharityWebApplication.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\config\AppConfig.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\config\DataSeeder.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\config\SecurityConfig.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\config\VNPayConfig.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\config\WebMvcConfig.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\ActivityController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\AdminController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\AuthController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\DisbursementController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\DonationController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\FileController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\InteractionController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\PaymentController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\ProjectController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\controller\UserController.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\DuplicateResourceException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\FileStorageException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\InvalidDisbursementException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\PaymentFailedException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\PaymentUrlGenerationException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\ResourceNotFoundException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\exception\UnauthorizedAccessException.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\ActivityRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\CategoryRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\ChangePasswordRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\CreateProjectRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\DisbursementRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\DonationRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\InteractionRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\LoginRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\RegisterIndivRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\RegisterOrgRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\UpdateAccountStatusRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\UpdateActivityStatusRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\UpdateDisbursementStatusRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\UpdateProfileRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\request\UpdateProjectStatusRequest.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\ActivityResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\ApiErrorResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\DisbursementResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\DonationHistoryResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\DonationResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\InteractionResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\PaymentUrlResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\ProjectResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\SystemStatisticsResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\dto\response\UserProfileResponse.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Account.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\ActivityInteraction.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Admin.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Disbursement.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Donation.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Individual.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Organization.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Project.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\ProjectActivity.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\ProjectCategory.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\Transaction.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\entity\User.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\AccountStatus.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\ActivityStatus.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\DisbursementStatus.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\DonationStatus.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\InteractionType.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\model\enums\ProjectStatus.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\AccountRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\ActivityInteractionRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\DisbursementRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\DonationRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\IndividualRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\OrganizationRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\ProjectActivityRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\ProjectCategoryRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\ProjectRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\TransactionRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\repository\UserRepository.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\security\CustomAccessDeniedHandler.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\security\CustomUserDetailsService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\security\JwtAuthenticationEntryPoint.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\security\JwtAuthenticationFilter.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\security\JwtTokenProvider.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\ActivityService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\AdminService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\AuthService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\DisbursementService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\DonationService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\FileStorageService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\ActivityServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\AdminServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\AuthServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\DisbursementServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\DonationServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\FileStorageServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\InteractionServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\PaymentServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\ProjectServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\impl\UserServiceImpl.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\InteractionService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\PaymentService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\ProjectService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\service\UserService.java
+C:\CharityWeb\CharityWebBackend\src\main\java\group3\project\charityweb\util\CookieUtils.java

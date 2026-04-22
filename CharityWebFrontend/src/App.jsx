@@ -20,6 +20,7 @@ import ContactPage from './pages/ContactPage';
 import TermsPage from './pages/TermsPage';
 import HelpPage from './pages/HelpPage';
 import NotFoundPage from './pages/NotFoundPage';
+import MyProjectsPage from './pages/MyProjectsPage';
 
 function AppLayout({ children }) {
     return (
@@ -42,6 +43,13 @@ export default function App() {
                 <Route path="/" element={<AppLayout><HomePage /></AppLayout>} />
                 <Route path="/projects" element={<AppLayout><ProjectsPage /></AppLayout>} />
                 <Route path="/projects/:projectId" element={<AppLayout><ProjectDetailPage /></AppLayout>} />
+                <Route path="/my-projects/:projectId" element={
+                    <AppLayout>
+                        <ProtectedRoute roles={['ORGANIZATION']}>
+                            <ProjectDetailPage isManageMode={true} />
+                        </ProtectedRoute>
+                    </AppLayout>
+                } />
                 <Route path="/categories" element={<AppLayout><CategoriesPage /></AppLayout>} />
                 <Route path="/search" element={<AppLayout><SearchPage /></AppLayout>} />
                 <Route path="/about" element={<AppLayout><AboutPage /></AppLayout>} />
@@ -49,6 +57,17 @@ export default function App() {
                 <Route path="/terms" element={<AppLayout><TermsPage /></AppLayout>} />
                 <Route path="/help" element={<AppLayout><HelpPage /></AppLayout>} />
                 <Route path="/payment/result" element={<AppLayout><PaymentResultPage /></AppLayout>} />
+
+                <Route
+                    path="/my-projects"
+                    element={
+                        <AppLayout>
+                            <ProtectedRoute roles={['ORGANIZATION']}>
+                                <MyProjectsPage />
+                            </ProtectedRoute>
+                        </AppLayout>
+                    }
+                />
 
                 {/* Protected routes */}
                 <Route

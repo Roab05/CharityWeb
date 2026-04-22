@@ -4,11 +4,15 @@ import { getProjects } from '../services/ProjectService';
 import { getStatistics } from '../services/AdminService';
 import ProjectCard from '../components/ProjectCard';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function HomePage() {
+    const { user } = useAuth();
     const [projects, setProjects] = useState([]);
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const isCommunityRole = user?.roleType === 'ORGANIZATION';
 
     useEffect(() => {
         const fetchData = async () => {
@@ -60,10 +64,10 @@ export default function HomePage() {
                                     Khám phá dự án
                                 </Link>
                                 <Link
-                                    to="/register"
+                                    to={isCommunityRole ? "/projects/new" : "/register"}
                                     className="border-2 border-white/40 text-white px-8 py-3.5 rounded-xl font-semibold hover:bg-white/10 transition-all text-center"
                                 >
-                                    Bắt đầu gây quỹ
+                                    {isCommunityRole ? 'Bắt đầu tạo dự án' : 'Bắt đầu gây quỹ'}
                                 </Link>
                             </div>
                         </div>

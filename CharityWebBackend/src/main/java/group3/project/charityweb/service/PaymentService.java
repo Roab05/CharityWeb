@@ -5,5 +5,5 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface PaymentService {
     String createPaymentUrl(Transaction transaction, HttpServletRequest request);
-    void processCallback(HttpServletRequest request);
+    String processCallback(HttpServletRequest request);
 }

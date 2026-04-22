@@ -52,31 +52,36 @@ export default function Header() {
                             <span className="text-xl font-bold text-primary-600">GayQuy.vn</span>
                         </Link>
 
-                        {/* Desktop Nav - Đã dãn cách và tăng cỡ chữ lên text-base */}
-                        <nav className="hidden md:flex items-center space-x-8 lg:space-x-12">
-                            <Link to="/" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                        {/* Desktop Nav - Đã căn chỉnh để trên 1 dòng, không bị bẻ chữ */}
+                        <nav className="hidden md:flex items-center justify-center gap-2 lg:gap-6 flex-1 px-4 whitespace-nowrap">
+                            <Link to="/" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Trang chủ
                             </Link>
-                            <Link to="/explore" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/explore" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Khám phá
                             </Link>
-                            <Link to="/projects" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/projects" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Dự án
                             </Link>
-                            <Link to="/categories" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/categories" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Danh mục
                             </Link>
-                            <Link to="/about" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/about" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Giới thiệu
                             </Link>
                             
                             {user?.roleType === 'ORGANIZATION' && (
-                                <Link to="/projects/new" className="px-3 py-2 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
-                                    Tạo dự án
-                                </Link>
+                                <>
+                                    <Link to="/my-projects" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-primary-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                        Quản lý dự án
+                                    </Link>
+                                    <Link to="/projects/new" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                        Tạo dự án
+                                    </Link>
+                                </>
                             )}
                             {user?.roleType === 'ADMIN' && (
-                                <Link to="/admin" className="px-3 py-2 rounded-lg text-base font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                                <Link to="/admin" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all">
                                     Quản trị
                                 </Link>
                             )}
