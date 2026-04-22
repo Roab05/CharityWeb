@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -55,18 +56,23 @@ public class ContextBuilderService {
                 .append("1) Chon du an va tao donation.\n")
                 .append("2) He thong tao URL thanh toan (VNPay).\n")
                 .append("3) Sau callback thanh cong, donation duoc cap nhat SUCCESS va cong tien cho du an.\n")
-                .append("4) Nguoi dung co the xem lich su giao dich tai /api/v1/users/me/transactions.\n\n");
+                .append("4) Nguoi dung co the xem lich su luot ung ho tai /api/v1/users/me/donations, va lich su giao dich thanh toan tai /api/v1/users/me/transactions.\n\n");
     }
 
     private void appendProject(StringBuilder context, List<ChatSource> sources, Project project) {
+        String organizations = project.getOrganizations().stream()
+                .map(org -> defaultText(org.getName())) // Giả sử phương thức lấy tên là getOrgName()
+                .collect(Collectors.joining(", "));
+
         context.append("[PROJECT]")
                 .append(" id=").append(project.getProjectId())
                 .append("; name=").append(defaultText(project.getProjectName()))
+                .append("; organizationName=").append(organizations)
                 .append("; status=").append(project.getStatus())
                 .append("; target=").append(project.getTargetAmount())
                 .append("; current=").append(project.getCurrentAmount())
                 .append("; endDate=").append(project.getEndDate())
-                .append("; description=").append(defaultText(project.getDescription()))
+                .append("; description=").append(truncate(defaultText(project.getDescription()), chatbotProperties.getMaxProjectDescriptionChars()))
                 .append("\n");
 
         sources.add(ChatSource.builder()
@@ -83,7 +89,7 @@ public class ContextBuilderService {
             context.append("[ACTIVITY]")
                     .append(" id=").append(activity.getActivityId())
                     .append("; title=").append(defaultText(activity.getTitle()))
-                    .append("; content=").append(defaultText(activity.getContent()))
+                    .append("; content=").append(truncate(defaultText(activity.getContent()), chatbotProperties.getMaxActivityContentChars()))
                     .append("\n");
 
             sources.add(ChatSource.builder()
@@ -100,5 +106,14 @@ public class ContextBuilderService {
         }
         return value.replace("\n", " ").trim();
     }
+
+    private String truncate(String value, int maxChars) {
+        if (value == null || value.length() <= maxChars || maxChars <= 0) {
+            return value;
+        }
+        return value.substring(0, maxChars) + "...";
+    }
 }
+
+
 
