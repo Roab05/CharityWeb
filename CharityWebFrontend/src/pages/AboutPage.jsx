@@ -1,7 +1,10 @@
 import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
 
 export default function AboutPage() {
+    const { user } = useAuth();
+
     return (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="text-center mb-12">
@@ -38,13 +41,15 @@ export default function AboutPage() {
             </div>
 
             {/* CTA */}
-            <div className="bg-gradient-to-r from-primary-600 to-teal-600 rounded-2xl p-8 text-center text-white">
-                <h2 className="text-2xl font-bold mb-3">Hãy cùng tạo nên sự khác biệt</h2>
-                <p className="text-white/80 mb-6">Tham gia cùng cộng đồng gây quỹ lớn nhất Việt Nam ngay hôm nay</p>
-                <Link to="/register" className="inline-block bg-white text-primary-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all">
-                    Bắt đầu ngay
-                </Link>
-            </div>
+            {!user && (
+                <div className="bg-gradient-to-r from-primary-600 to-teal-600 rounded-2xl p-8 text-center text-white">
+                    <h2 className="text-2xl font-bold mb-3">Hãy cùng tạo nên sự khác biệt</h2>
+                    <p className="text-white/80 mb-6">Tham gia cùng cộng đồng gây quỹ lớn nhất Việt Nam ngay hôm nay</p>
+                    <Link to="/register" className="inline-block bg-white text-primary-700 px-8 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-all">
+                        Bắt đầu ngay
+                    </Link>
+                </div>
+            )}
         </div>
     );
 }

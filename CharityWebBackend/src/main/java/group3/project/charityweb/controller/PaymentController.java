@@ -3,11 +3,13 @@ package group3.project.charityweb.controller;
 import group3.project.charityweb.service.PaymentService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URI;
 import java.util.Map;
 
 @RestController
@@ -21,9 +23,13 @@ public class PaymentController {
     public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
         paymentService.processReturnCallback(request);
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Da ghi nhan ket qua giao dich."
-        ));
+        String queryString = request.getQueryString();
+
+        String frontendUrl = "http://localhost:3000/payment/result?" + queryString;
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(frontendUrl))
+                .build();
     }
 
     @GetMapping("/ipn")

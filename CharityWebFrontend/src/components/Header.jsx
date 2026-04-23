@@ -57,9 +57,6 @@ export default function Header() {
                             <Link to="/" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Trang chủ
                             </Link>
-                            <Link to="/explore" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
-                                Khám phá
-                            </Link>
                             <Link to="/projects" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
                                 Dự án
                             </Link>
