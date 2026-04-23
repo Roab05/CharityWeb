@@ -8,6 +8,7 @@ import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.entity.Project;
 import group3.project.charityweb.model.entity.ProjectActivity;
 import group3.project.charityweb.model.enums.ActivityStatus;
+import group3.project.charityweb.repository.ActivityInteractionRepository;
 import group3.project.charityweb.repository.ProjectActivityRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import group3.project.charityweb.service.ActivityService;
@@ -23,6 +24,7 @@ public class ActivityServiceImpl implements ActivityService {
 
     private final ProjectActivityRepository activityRepository;
     private final ProjectRepository projectRepository;
+    private final ActivityInteractionRepository activityInteractionRepository;
 
     @Transactional
     public String createActivity(String username, String projectId, ActivityRequest request) {
@@ -89,12 +91,26 @@ public class ActivityServiceImpl implements ActivityService {
         activityRepository.save(activity);
     }
 
+    @Override
+    @Transactional
+    public void deleteActivity(String username, String activityId) {
+        ProjectActivity activity = activityRepository.findById(activityId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài đăng."));
+
+        verifyActivityOwnership(username, activity);
+
+        // Delete interactions first to avoid FK violations when removing activity.
+        activityInteractionRepository.deleteByActivity_ActivityId(activityId);
+        activityRepository.delete(activity);
+    }
+
     private ActivityResponse mapToActivityResponse(ProjectActivity activity) {
         return ActivityResponse.builder()
                 .activityId(activity.getActivityId())
                 .title(activity.getTitle())
                 .content(activity.getContent())
                 .imageURL(activity.getImageURL())
+                .status(activity.getStatus())
                 .build();
     }
 

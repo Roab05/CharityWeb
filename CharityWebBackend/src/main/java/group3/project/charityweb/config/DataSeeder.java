@@ -15,7 +15,6 @@ public class DataSeeder {
 
     @Bean
     public CommandLineRunner initData(AccountRepository accountRepository,
-                                      ProjectCategoryRepository categoryRepository,
                                       PasswordEncoder passwordEncoder) {
         return _ -> {
             if (!accountRepository.existsByUsername("admin")) {

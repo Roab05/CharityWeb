@@ -4,11 +4,31 @@ import { useSearchParams, Link } from 'react-router-dom';
 export default function PaymentResultPage() {
     const [searchParams] = useSearchParams();
     const responseCode = searchParams.get('vnp_ResponseCode');
+    const transactionStatus = searchParams.get('vnp_TransactionStatus');
     const amount = searchParams.get('vnp_Amount');
     const txnRef = searchParams.get('vnp_TxnRef');
 
-    const isSuccess = responseCode === '00';
+    const isSuccess = responseCode === '00' && (!transactionStatus || transactionStatus === '00');
     const formattedAmount = amount ? new Intl.NumberFormat('vi-VN').format(parseInt(amount) / 100) + ' ₫' : '';
+
+    const getFailureMessage = () => {
+        if (!responseCode) {
+            return 'Giao dịch đã quá thời gian thanh toán hoặc không có phản hồi hợp lệ.';
+        }
+
+        const code = String(responseCode);
+        const statusCode = transactionStatus ? String(transactionStatus) : null;
+
+        if (code === '24' || statusCode === '02') {
+            return 'Bạn đã hủy giao dịch thanh toán. Lịch sử giao dịch sẽ ghi nhận là thất bại.';
+        }
+
+        if (code === '91' || statusCode === '03') {
+            return 'Giao dịch đã hết thời gian chờ (timeout). Lịch sử giao dịch sẽ ghi nhận là thất bại.';
+        }
+
+        return 'Giao dịch không thành công. Lịch sử giao dịch sẽ ghi nhận là thất bại.';
+    };
 
     return (
         <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -37,12 +57,21 @@ export default function PaymentResultPage() {
                             </svg>
                         </div>
                         <h1 className="text-2xl font-bold text-gray-800 mb-2">Thanh toán thất bại</h1>
-                        <p className="text-gray-500 mb-6">
-                            {responseCode ? 'Giao dịch không thành công. Vui lòng thử lại.' : 'Không có thông tin thanh toán.'}
-                        </p>
+                        <p className="text-gray-500 mb-4">{getFailureMessage()}</p>
+
+                        {(responseCode || transactionStatus) && (
+                            <div className="bg-red-50 rounded-xl p-4 mb-6 text-left text-sm text-red-700 space-y-1">
+                                {responseCode && <p>Mã phản hồi: <span className="font-semibold">{responseCode}</span></p>}
+                                {transactionStatus && <p>Trạng thái cổng thanh toán: <span className="font-semibold">{transactionStatus}</span></p>}
+                                {txnRef && <p>Mã giao dịch: <span className="font-semibold">{txnRef}</span></p>}
+                            </div>
+                        )}
                     </>
                 )}
                 <div className="flex flex-col gap-3">
+                    {!isSuccess && (
+                        <Link to="/profile" className="btn-secondary text-center">Xem lịch sử giao dịch</Link>
+                    )}
                     <Link to="/projects" className="btn-primary text-center">Quay lại dự án</Link>
                     <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">Về trang chủ</Link>
                 </div>

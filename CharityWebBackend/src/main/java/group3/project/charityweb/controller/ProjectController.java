@@ -47,10 +47,10 @@ public class ProjectController {
         return ResponseEntity.ok(projects);
     }
 
-    @GetMapping("/categories")
-    public ResponseEntity<java.util.List<ProjectCategoryResponse>> getAllCategories() {
-        return ResponseEntity.ok(projectService.getAllCategories());
-    }
+//    @GetMapping("/categories")
+//    public ResponseEntity<java.util.List<ProjectCategoryResponse>> getAllCategories() {
+//        return ResponseEntity.ok(projectService.getAllCategories());
+//    }
 
     @GetMapping("/me/managed")
     public ResponseEntity<Page<ProjectResponse>> getMyManagedProjects(
