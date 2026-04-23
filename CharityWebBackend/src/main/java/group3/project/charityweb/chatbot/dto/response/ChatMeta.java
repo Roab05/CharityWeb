@@ -8,6 +8,9 @@ import lombok.Data;
 public class ChatMeta {
     private String model;
     private long latencyMs;
+    private long contextBuildLatencyMs;
+    private long modelCallLatencyMs;
     private boolean fallbackUsed;
 }
+
 

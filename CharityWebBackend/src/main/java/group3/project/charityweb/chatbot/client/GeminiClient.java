@@ -1,6 +1,9 @@
 package group3.project.charityweb.chatbot.client;
 
+import group3.project.charityweb.chatbot.client.dto.GeminiGenerationResult;
+
 public interface GeminiClient {
-    String generate(String systemPrompt, String userPrompt);
+    GeminiGenerationResult generate(String systemPrompt, String userPrompt);
 }
+
 
