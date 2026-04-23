@@ -89,9 +89,13 @@ export default function AdminDashboardPage() {
         try {
             await updateDisbursementStatus(disbursementId, { status });
             fetchAll();
-        } catch { /* ignore */ }
+        } catch (error) {
+            // SỬA Ở ĐÂY: Bắt lỗi từ Backend và hiển thị cảnh báo
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra từ máy chủ khi xử lý yêu cầu.';
+            alert("Lỗi: " + errorMessage);
+            setConfirmModal({ show: false });
+        }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleCreateCategory = async (e) => {

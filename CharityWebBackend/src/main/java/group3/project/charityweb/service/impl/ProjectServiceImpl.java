@@ -188,6 +188,7 @@ public class ProjectServiceImpl implements ProjectService {
                 .description(project.getDescription())
                 .targetAmount(project.getTargetAmount())
                 .currentAmount(project.getCurrentAmount())
+                .disbursedAmount(project.getDisbursedAmount())
                 .status(project.getStatus())
                 .backgroundImageURL(project.getBackgroundImageURL())
                 .bankAccountNo(project.getBankAccountNo())

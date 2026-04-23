@@ -25,7 +25,7 @@ const STATUS_CONFIG = {
     SUSPENDED: { label: 'Tạm dừng', className: 'badge-gray' },
 };
 
-export default function ProjectDetailPage({ isManageMode = false }) {
+export default function ProjectDetailPage() {
     const { projectId } = useParams();
     const { user } = useAuth();
     const [project, setProject] = useState(null);
@@ -46,6 +46,8 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const [showDisbursementForm, setShowDisbursementForm] = useState(false);
     const [disbursementForm, setDisbursementForm] = useState({ amount: '', reason: '', evidenceURL: '', recipientInfo: '' });
     const [disbursementLoading, setDisbursementLoading] = useState(false);
+    const [evidenceFile, setEvidenceFile] = useState(null);
+    const [disbursementError, setDisbursementError] = useState('');
 
     // Co-manager organization form
     const [showCoManagerForm, setShowCoManagerForm] = useState(false);
@@ -57,7 +59,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const [coManagerLoading, setCoManagerLoading] = useState(false);
     const [coManagerMsg, setCoManagerMsg] = useState({ type: '', text: '' });
 
-    // Interaction states
     const [interactionsByActivity, setInteractionsByActivity] = useState({});
     const [commentTexts, setCommentTexts] = useState({});
 
@@ -68,6 +69,17 @@ export default function ProjectDetailPage({ isManageMode = false }) {
         if (url.startsWith('http')) return url;
         return `${API_BASE_URL.replace('/api/v1', '')}/api/v1/images/${url}`;
     };
+
+    // ==========================================
+    // LOGIC TÍNH TOÁN QUỸ KHẢ DỤNG CHUẨN XÁC
+    // ==========================================
+    const pendingAmount = disbursements
+        .filter(d => d.status === 'PENDING')
+        .reduce((sum, d) => sum + d.amount, 0);
+
+    const availableAmount = (project?.currentAmount || 0) - (project?.disbursedAmount || 0) - pendingAmount;
+
+    // ==========================================
 
     const fetchProject = async () => {
         try {
@@ -98,7 +110,12 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     };
 
     const isManager = user?.roleType === 'ORGANIZATION' && 
-                      project?.organizationNames?.includes(user.orgName || user.username);
+                      project?.organizationNames?.some(name => 
+                          name === user.orgName || 
+                          name === user.name || 
+                          name === user.fullName || 
+                          name === user.username
+                      );
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -123,7 +140,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     useEffect(() => {
         if (!showCoManagerForm) return;
-
         const timer = setTimeout(async () => {
             setOrgLoading(true);
             try {
@@ -137,7 +153,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
             }
             setOrgLoading(false);
         }, 300);
-
         return () => clearTimeout(timer);
     }, [showCoManagerForm, orgSearch, project?.organizationNames]);
 
@@ -161,17 +176,39 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     const handleCreateDisbursement = async (e) => {
         e.preventDefault();
+        setDisbursementError(''); 
         setDisbursementLoading(true);
+
+        const requestedAmount = parseFloat(disbursementForm.amount);
+
+        // KIỂM TRA SO VỚI QUỸ KHẢ DỤNG THAY VÌ TỔNG QUỸ
+        if (requestedAmount > availableAmount) {
+            setDisbursementError(`Số tiền yêu cầu (${formatCurrency(requestedAmount)}) vượt quá quỹ khả dụng hiện tại (${formatCurrency(availableAmount)}).`);
+            setDisbursementLoading(false);
+            return;
+        }
+
         try {
+            let finalEvidenceURL = disbursementForm.evidenceURL;
+            if (evidenceFile) {
+                const uploadRes = await uploadFile(evidenceFile);
+                finalEvidenceURL = uploadRes.data.url;
+            }
+
             await createDisbursement(projectId, {
                 ...disbursementForm,
-                amount: parseFloat(disbursementForm.amount),
+                evidenceURL: finalEvidenceURL,
+                amount: requestedAmount,
             });
+            
             setDisbursementForm({ amount: '', reason: '', evidenceURL: '', recipientInfo: '' });
+            setEvidenceFile(null);
             setShowDisbursementForm(false);
             alert('Yêu cầu giải ngân đã được gửi đến Quản trị viên để xét duyệt!');
-            fetchDisbursements();
-        } catch { /* ignore */ }
+            fetchDisbursements(); // Tải lại danh sách sẽ cập nhật luôn số dư
+        } catch (error) {
+            setDisbursementError(error.response?.data?.message || 'Có lỗi xảy ra khi tạo yêu cầu giải ngân. Vui lòng thử lại.');
+        }
         setDisbursementLoading(false);
     };
 
@@ -181,7 +218,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
             setCoManagerMsg({ type: 'error', text: 'Vui lòng chọn một tổ chức từ danh sách.' });
             return;
         }
-
         setCoManagerLoading(true);
         setCoManagerMsg({ type: '', text: '' });
         try {
@@ -235,17 +271,15 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     const progress = project.targetAmount > 0 ? Math.min((project.currentAmount / project.targetAmount) * 100, 100) : 0;
     const statusCfg = STATUS_CONFIG[project.status] || STATUS_CONFIG.PENDING;
-    const isOrg = user?.roleType === 'ORGANIZATION';
-    const isOwnerOrg = isOrg && project.organizationNames?.some((name) => name === user.orgName);
     const isActive = project.status === 'ACTIVE';
     const endDate = project.endDate ? new Date(project.endDate) : null;
     const daysLeft = endDate ? Math.ceil((endDate - new Date()) / (1000 * 60 * 60 * 24)) : null;
 
     const tabs = [
         { key: 'about', label: 'Giới thiệu' },
-        ...(isManageMode ? [{ key: 'activities', label: `Bài đăng (${activities.length})` }] : []),
+        { key: 'activities', label: `Bài đăng (${activities.length})` },
         { key: 'donations', label: `Ủng hộ (${donations.length})` },
-        ...(isManageMode ? [{ key: 'disbursements', label: `Giải ngân (${disbursements.length})` }] : []),
+        { key: 'disbursements', label: `Giải ngân (${disbursements.length})` },
     ];
 
     const getActivityStats = (activityId) => {
@@ -260,7 +294,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Breadcrumb */}
             <nav className="flex items-center text-sm text-gray-500 mb-6">
                 <Link to="/projects" className="hover:text-primary-600">Dự án</Link>
                 <svg className="w-4 h-4 mx-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
@@ -268,9 +301,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
             </nav>
 
             <div className="grid lg:grid-cols-3 gap-8">
-                {/* Main Content */}
                 <div className="lg:col-span-2">
-                    {/* Hero Image */}
                     <div className="relative rounded-2xl overflow-hidden mb-6">
                         <img
                             src={getImageUrl(project.backgroundImageURL) || 'https://images.unsplash.com/photo-1532629345422-7515f3d16bb6?w=800&h=400&fit=crop'}
@@ -292,8 +323,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                         <p className="text-gray-500 mb-6">bởi <span className="font-medium text-gray-700">{project.organizationNames.join(', ')}</span></p>
                     )}
 
-                    {/* Tabs */}
-                    <div className={`grid ${isManageMode ? 'grid-cols-4 overflow-x-auto' : 'grid-cols-2'} border-b border-gray-200 mb-6`}>
+                    <div className="grid grid-cols-4 overflow-x-auto border-b border-gray-200 mb-6">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.key}
@@ -311,7 +341,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                         ))}
                     </div>
 
-                    {/* Tab Content */}
                     {activeTab === 'about' && (
                         <div>
                             <p className="text-gray-700 leading-relaxed whitespace-pre-line">{project.description}</p>
@@ -432,7 +461,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
                     {activeTab === 'activities' && (
                         <div className="space-y-6">
-                            {isOwnerOrg && (
+                            {isManager && (
                                 <div>
                                     {!showActivityForm ? (
                                         <button onClick={() => setShowActivityForm(true)} className="btn-primary text-sm">+ Đăng cập nhật mới</button>
@@ -590,13 +619,36 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
                     {activeTab === 'disbursements' && (
                         <div className="space-y-4">
-                            {isOwnerOrg && (
+                            
+                            {/* HIỂN THỊ QUỸ KHẢ DỤNG CHUẨN XÁC */}
+                            {isManager && (
+                                <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 p-4 rounded-xl mb-4">
+                                    <div>
+                                        <p className="font-semibold text-emerald-800">Quỹ khả dụng (Còn lại)</p>
+                                        <p className="text-xs text-emerald-600 mt-0.5">
+                                            Đã trừ các khoản đang chờ duyệt: {formatCurrency(pendingAmount)}
+                                        </p>
+                                    </div>
+                                    <p className="text-2xl font-bold text-emerald-700">
+                                        {formatCurrency(availableAmount)}
+                                    </p>
+                                </div>
+                            )}
+
+                            {isManager && (
                                 <div>
                                     {!showDisbursementForm ? (
                                         <button onClick={() => setShowDisbursementForm(true)} className="btn-primary text-sm">+ Yêu cầu giải ngân</button>
                                     ) : (
                                         <form onSubmit={handleCreateDisbursement} className="card p-6 space-y-4">
                                             <h3 className="font-semibold text-gray-800">Yêu cầu giải ngân</h3>
+                                            
+                                            {disbursementError && (
+                                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                                                    {disbursementError}
+                                                </div>
+                                            )}
+
                                             <input
                                                 type="number"
                                                 className="input-field"
@@ -614,13 +666,25 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                                 onChange={(e) => setDisbursementForm({ ...disbursementForm, reason: e.target.value })}
                                                 required
                                             />
-                                            <input
-                                                type="text"
-                                                className="input-field"
-                                                placeholder="URL bằng chứng (không bắt buộc)"
-                                                value={disbursementForm.evidenceURL}
-                                                onChange={(e) => setDisbursementForm({ ...disbursementForm, evidenceURL: e.target.value })}
-                                            />
+                                            
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-1.5">Bằng chứng (Hình ảnh/Hóa đơn)</label>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="input-field text-sm"
+                                                    onChange={(e) => setEvidenceFile(e.target.files[0])}
+                                                />
+                                                <p className="text-xs text-gray-400 mt-1 mb-2">Hoặc nhập URL hình ảnh bên dưới</p>
+                                                <input
+                                                    type="text"
+                                                    className="input-field"
+                                                    placeholder="https://example.com/hoa-don.jpg"
+                                                    value={disbursementForm.evidenceURL}
+                                                    onChange={(e) => setDisbursementForm({ ...disbursementForm, evidenceURL: e.target.value })}
+                                                />
+                                            </div>
+
                                             <input
                                                 type="text"
                                                 className="input-field"
@@ -655,7 +719,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                             <p className="text-sm text-gray-600 mb-1"><span className="font-medium">Lý do:</span> {d.reason}</p>
                                             {d.recipientInfo && <p className="text-sm text-gray-600 mb-1"><span className="font-medium">Người nhận:</span> {d.recipientInfo}</p>}
                                             {d.evidenceURL && (
-                                                <a href={d.evidenceURL} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">Xem bằng chứng</a>
+                                                <a href={getImageUrl(d.evidenceURL)} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-600 hover:underline">Xem bằng chứng</a>
                                             )}
                                             <p className="text-xs text-gray-400 mt-2">{d.disbursementTime ? new Date(d.disbursementTime).toLocaleString('vi-VN') : ''}</p>
                                         </div>
@@ -715,7 +779,8 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                             )}
                         </div>
 
-                        {isManageMode && isOwnerOrg && (
+                        {/* Co-Managers Card (Chỉ hiển thị cho Manager) */}
+                        {isManager && (
                             <div className="card p-6">
                                 <h3 className="font-semibold text-gray-800 mb-3">Đồng quản lý dự án</h3>
 

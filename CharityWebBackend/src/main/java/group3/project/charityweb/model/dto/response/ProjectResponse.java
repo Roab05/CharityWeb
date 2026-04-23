@@ -20,6 +20,7 @@ public class ProjectResponse {
     private String description;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
+    private BigDecimal disbursedAmount;
     private ProjectStatus status;
     private String backgroundImageURL;
     private String bankAccountNo;

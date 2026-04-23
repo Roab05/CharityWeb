@@ -115,7 +115,6 @@ public class GeminiHttpClient implements GeminiClient {
     private GeminiResponse callGemini(String model, String apiKey, GeminiRequest request) {
         String endpoint = "/v1beta/models/" + model + ":generateContent?key=" + apiKey;
 
-        // Log endpoint nhưng che API Key đi để đảm bảo bảo mật
         String maskedEndpoint = "/v1beta/models/" + model + ":generateContent?key=***";
         log.info("[Gemini API] Đang gửi request tới: {}", maskedEndpoint);
 
@@ -154,7 +153,7 @@ public class GeminiHttpClient implements GeminiClient {
                 .filter(partText -> partText != null && !partText.isBlank())
                 .map(String::trim)
                 .collect(Collectors.joining("\n"));
-        if (text == null || text.isBlank()) {
+        if (text.isBlank()) {
             log.warn("[Gemini API] AI trả về text rỗng.");
             throw new ChatbotUpstreamException("Gemini trả về câu trả lời rỗng.");
         }
