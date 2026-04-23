@@ -1,15 +1,19 @@
 package group3.project.charityweb.service.impl;
 
+import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ProjectService;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.exception.UnauthorizedAccessException;
+import group3.project.charityweb.model.dto.request.ActivityRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.entity.Organization;
 import group3.project.charityweb.model.entity.Project;
+import group3.project.charityweb.model.entity.ProjectActivity;
 import group3.project.charityweb.model.entity.ProjectCategory;
 import group3.project.charityweb.repository.OrganizationRepository;
+import group3.project.charityweb.repository.ProjectActivityRepository;
 import group3.project.charityweb.repository.ProjectCategoryRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
