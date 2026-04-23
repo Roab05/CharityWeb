@@ -18,11 +18,16 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @GetMapping("/callback")
-    public ResponseEntity<?> vnpayCallback(HttpServletRequest request) {
-        paymentService.processCallback(request);
+    public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
+        paymentService.processReturnCallback(request);
 
         return ResponseEntity.ok(Map.of(
-                "message", "Giao dịch đã được xử lý thành công. Bạn có thể đóng cửa sổ này."
+                "message", "Da ghi nhan ket qua giao dich."
         ));
+    }
+
+    @GetMapping("/ipn")
+    public ResponseEntity<Map<String, String>> vnpayIpn(HttpServletRequest request) {
+        return ResponseEntity.ok(paymentService.processIpnCallback(request));
     }
 }
