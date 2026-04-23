@@ -65,35 +65,34 @@ export default function AdminDashboardPage() {
     }, []);
 
     const handleVerifyOrg = async (orgId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await verifyOrganization(orgId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleApproveProject = async (projectId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await approveProject(projectId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleDisbursementStatus = async (disbursementId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await updateDisbursementStatus(disbursementId, { status });
             fetchAll();
         } catch (error) {
-            // SỬA Ở ĐÂY: Bắt lỗi từ Backend và hiển thị cảnh báo
             const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra từ máy chủ khi xử lý yêu cầu.';
             alert("Lỗi: " + errorMessage);
-            setConfirmModal({ show: false });
         }
         setActionLoading(false);
     };
