@@ -1,19 +1,15 @@
 package group3.project.charityweb.service.impl;
 
-import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ProjectService;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.exception.UnauthorizedAccessException;
-import group3.project.charityweb.model.dto.request.ActivityRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.entity.Organization;
 import group3.project.charityweb.model.entity.Project;
-import group3.project.charityweb.model.entity.ProjectActivity;
 import group3.project.charityweb.model.entity.ProjectCategory;
 import group3.project.charityweb.repository.OrganizationRepository;
-import group3.project.charityweb.repository.ProjectActivityRepository;
 import group3.project.charityweb.repository.ProjectCategoryRepository;
 import group3.project.charityweb.repository.ProjectRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,6 +66,20 @@ public class ProjectServiceImpl implements ProjectService {
         } else {
             projectPage = projectRepository.findByStatus(status != null ? status : ProjectStatus.ACTIVE, pageRequest);
         }
+
+        return projectPage.map(this::mapToProjectResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectResponse> getMyManagedProjects(String username, ProjectStatus status, int page, int size) {
+        organizationRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedAccessException("Tài khoản không phải Tổ chức!"));
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> projectPage = status == null
+                ? projectRepository.findByOrganizations_UsernameOrderByCreatedAtDesc(username, pageRequest)
+                : projectRepository.findByOrganizations_UsernameAndStatusOrderByCreatedAtDesc(username, status, pageRequest);
 
         return projectPage.map(this::mapToProjectResponse);
     }

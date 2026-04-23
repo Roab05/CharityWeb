@@ -1,7 +1,7 @@
 ### Java
 # Compiled class file
 *.class
-
+.idea
 # Log file
 *.log
 
@@ -26,3 +26,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+.idea
+.idea
