@@ -1,3 +1,5 @@
 import api from './api';
 
-export const getProjectCategories = () => api.get('/projects/categories');
+export const getProjectCategories = (params) => {
+    return api.get('/projects/categories', { params: params });
+};

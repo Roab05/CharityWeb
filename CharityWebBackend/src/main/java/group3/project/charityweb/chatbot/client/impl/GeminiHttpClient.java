@@ -1,13 +1,12 @@
 package group3.project.charityweb.chatbot.client.impl;
 
 import group3.project.charityweb.chatbot.client.GeminiClient;
-import group3.project.charityweb.chatbot.client.dto.GeminiGenerationResult;
-import group3.project.charityweb.chatbot.client.dto.GeminiRequest;
-import group3.project.charityweb.chatbot.client.dto.GeminiResponse;
+import group3.project.charityweb.chatbot.client.dto.*;
 import group3.project.charityweb.chatbot.config.GeminiProperties;
 import group3.project.charityweb.chatbot.exception.ChatbotUpstreamException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
@@ -27,6 +26,7 @@ import java.util.stream.Collectors;
 public class GeminiHttpClient implements GeminiClient {
 
     private static final int HTTP_SERVICE_UNAVAILABLE = 503;
+    private static final int HTTP_TOO_MANY_REQUESTS = 429;
 
     private final RestClient geminiRestClient;
     private final GeminiProperties geminiProperties;
@@ -66,7 +66,7 @@ public class GeminiHttpClient implements GeminiClient {
                     return extractGenerationResult(response);
                 } catch (RestClientResponseException ex) {
                     int statusCode = ex.getStatusCode().value();
-                    boolean retryable = statusCode == HTTP_SERVICE_UNAVAILABLE;
+                    boolean retryable = (statusCode == HTTP_SERVICE_UNAVAILABLE || statusCode == HTTP_TOO_MANY_REQUESTS);
                     if (retryable && shouldRetry(attempt, maxAttempts)) {
                         sleepBackoff(attempt, model, "HTTP " + statusCode);
                         continue;
@@ -76,8 +76,8 @@ public class GeminiHttpClient implements GeminiClient {
                             ex.getStatusCode(), ex.getStatusText(), ex.getResponseBodyAsString());
                     lastFailure = new ChatbotUpstreamException("Lỗi từ Gemini API (HTTP " + ex.getStatusCode() + ").", ex);
 
-                    if (statusCode == HTTP_SERVICE_UNAVAILABLE) {
-                        log.warn("[Gemini API] Model {} quá tải, thử model khác nếu có.", model);
+                    if (statusCode == HTTP_SERVICE_UNAVAILABLE || statusCode == HTTP_TOO_MANY_REQUESTS) {
+                        log.warn("[Gemini API] Model {} báo lỗi {} (Quá tải/Hết quota), thử model dự phòng khác nếu có.", model, statusCode);
                         break;
                     }
                     throw lastFailure;
@@ -116,7 +116,6 @@ public class GeminiHttpClient implements GeminiClient {
     private GeminiResponse callGemini(String model, String apiKey, GeminiRequest request) {
         String endpoint = "/v1beta/models/" + model + ":generateContent?key=" + apiKey;
 
-        // Log endpoint nhưng che API Key đi để đảm bảo bảo mật
         String maskedEndpoint = "/v1beta/models/" + model + ":generateContent?key=***";
         log.info("[Gemini API] Đang gửi request tới: {}", maskedEndpoint);
 
@@ -155,7 +154,7 @@ public class GeminiHttpClient implements GeminiClient {
                 .filter(partText -> partText != null && !partText.isBlank())
                 .map(String::trim)
                 .collect(Collectors.joining("\n"));
-        if (text == null || text.isBlank()) {
+        if (text.isBlank()) {
             log.warn("[Gemini API] AI trả về text rỗng.");
             throw new ChatbotUpstreamException("Gemini trả về câu trả lời rỗng.");
         }
@@ -164,6 +163,51 @@ public class GeminiHttpClient implements GeminiClient {
                 .text(text.trim())
                 .finishReason(firstCandidate.getFinishReason())
                 .build();
+    }
+
+    @Override
+    public List<Float> getEmbedding(String text) {
+        String apiKey = geminiProperties.getApiKey();
+        if (apiKey == null || apiKey.isBlank()) {
+            log.error("[Gemini API] Lỗi cấu hình: API Key bị trống.");
+            throw new ChatbotUpstreamException("Gemini API key chưa được cấu hình.");
+        }
+
+        GeminiEmbeddingRequest request = GeminiEmbeddingRequest.builder()
+                .model("models/gemini-embedding-2")
+                .content(GeminiEmbeddingRequest.Content.builder()
+                        .parts(List.of(GeminiEmbeddingRequest.Part.builder()
+                                .text(text)
+                                .build()))
+                        .build())
+                .build();
+
+        try {
+            String endpoint = "/v1beta/models/gemini-embedding-2:embedContent?key=" + apiKey;
+            log.info("[Gemini API] Đang gửi request Embedding...");
+
+            GeminiEmbeddingResponse response = geminiRestClient.post()
+                    .uri(endpoint)
+                    .body(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (req, res) -> {
+                        log.error("[Gemini API] Lỗi khi gọi Embedding: {}", res.getStatusCode());
+                        throw new ChatbotUpstreamException("Không thể lấy Vector từ Gemini.");
+                    })
+                    .body(GeminiEmbeddingResponse.class);
+
+            if (response != null && response.getEmbedding() != null) {
+                List<Float> values = response.getEmbedding().getValues();
+                log.info("[Gemini API] Lấy Vector thành công (Size: {})", values.size());
+                return values;
+            }
+
+            throw new ChatbotUpstreamException("Dữ liệu Vector trả về bị rỗng.");
+
+        } catch (Exception ex) {
+            log.error("[Gemini API] Lỗi hệ thống khi gọi Embedding: {}", ex.getMessage());
+            throw new ChatbotUpstreamException("Lỗi kết nối Gemini API để lấy Embedding.");
+        }
     }
 
     private boolean shouldRetry(int attempt, int maxAttempts) {

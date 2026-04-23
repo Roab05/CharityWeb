@@ -50,11 +50,12 @@ export default function AdminDashboardPage() {
                 getPendingDisbursements(),
                 getCategories(),
             ]);
-            if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
-            if (orgsRes.status === 'fulfilled') setPendingOrgs(orgsRes.value.data || []);
-            if (projectsRes.status === 'fulfilled') setPendingProjects(projectsRes.value.data || []);
-            if (disbRes.status === 'fulfilled') setPendingDisbursements(disbRes.value.data || []);
-            if (categoriesRes.status === 'fulfilled') setCategories(categoriesRes.value.data || []);
+                if (statsRes.status === 'fulfilled') setStats(statsRes.value.data || null);
+                if (orgsRes.status === 'fulfilled') setPendingOrgs(orgsRes.value.data?.content || []);
+                if (projectsRes.status === 'fulfilled') setPendingProjects(projectsRes.value.data?.content || []);
+                if (disbRes.status === 'fulfilled') setPendingDisbursements(disbRes.value.data?.content || []);
+                // SỬA Ở ĐÂY: API trả về Page, lấy data.content (hoặc data nếu API cũ chưa update)
+                if (categoriesRes.status === 'fulfilled') setCategories(categoriesRes.value.data?.content || categoriesRes.value.data || []);
         } catch { /* ignore */ }
         setLoading(false);
     };
@@ -64,33 +65,36 @@ export default function AdminDashboardPage() {
     }, []);
 
     const handleVerifyOrg = async (orgId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await verifyOrganization(orgId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleApproveProject = async (projectId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await approveProject(projectId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleDisbursementStatus = async (disbursementId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await updateDisbursementStatus(disbursementId, { status });
             fetchAll();
-        } catch { /* ignore */ }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra từ máy chủ khi xử lý yêu cầu.';
+            alert("Lỗi: " + errorMessage);
+        }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleCreateCategory = async (e) => {
@@ -168,10 +172,10 @@ export default function AdminDashboardPage() {
             {/* Overview */}
             {activeTab === 'overview' && stats && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard title="Tổng quyên góp" value={formatCurrency(stats.totalDonatedAmount)} color="text-primary-600" bg="bg-primary-50" />
-                    <StatCard title="Dự án đang hoạt động" value={stats.activeProjectsCount} color="text-blue-600" bg="bg-blue-50" />
-                    <StatCard title="Tổ chức chờ duyệt" value={stats.pendingOrganizationsCount} color="text-amber-600" bg="bg-amber-50" />
-                    <StatCard title="Dự án chờ duyệt" value={stats.pendingProjectsCount} color="text-purple-600" bg="bg-purple-50" />
+                        <StatCard title="Tổng quyên góp" value={formatCurrency(stats?.totalDonatedAmount || 0)} color="text-primary-600" bg="bg-primary-50" />
+                        <StatCard title="Dự án đang hoạt động" value={stats?.activeProjectsCount ?? 0} color="text-blue-600" bg="bg-blue-50" />
+                        <StatCard title="Tổ chức chờ duyệt" value={stats?.pendingOrganizationsCount ?? 0} color="text-amber-600" bg="bg-amber-50" />
+                        <StatCard title="Dự án chờ duyệt" value={stats?.pendingProjectsCount ?? 0} color="text-purple-600" bg="bg-purple-50" />
                 </div>
             )}
 
@@ -368,6 +372,7 @@ export default function AdminDashboardPage() {
                             <p className="text-sm text-gray-500">Chưa có danh mục nào.</p>
                         ) : (
                             <div className="space-y-3">
+                                {/* SỬA Ở ĐÂY: map dựa trên categoryId */}
                                 {categories.map((cat) => (
                                     <div key={cat.id} className="border border-gray-200 rounded-lg p-4 flex justify-between items-start hover:border-primary-300 transition-colors">
                                         {editingCategory === cat.id ? (

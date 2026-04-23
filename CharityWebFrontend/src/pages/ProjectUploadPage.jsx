@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { createProject } from '../services/ProjectService';
@@ -8,33 +8,71 @@ import { getProjectCategories } from '../services/CategoryService';
 export default function ProjectUploadPage() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [categories, setCategories] = useState([]);
+    
+    // Form dữ liệu chính
     const [formData, setFormData] = useState({
-        projectName: '',
-        description: '',
+        projectName: '', 
+        description: '', 
         targetAmount: '',
-        startDate: '',
-        endDate: '',
+        startDate: '', 
+        endDate: '', 
         backgroundImageURL: '',
-        bankAccountNo: '',
-        categoryId: '',
+        bankAccountNo: '', 
+        categoryIds: [],
     });
+    
+    // State cho chức năng Tìm kiếm Category
+    const [searchKeyword, setSearchKeyword] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+
     const [imageFile, setImageFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            try {
-                const res = await getProjectCategories();
-                setCategories(res.data || []);
-            } catch {
-                setCategories([]);
-            }
-        };
-        fetchCategories();
-    }, []);
+    // Hàm gọi API tìm kiếm
+    const handleSearchCategory = async (keyword) => {
+        setSearchKeyword(keyword);
+        if (!keyword.trim()) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const res = await getProjectCategories({ keyword: keyword, page: 0, size: 5 });
+            setSearchResults(res.data.content || []);
+        } catch (err) {
+            setSearchResults([]);
+        }
+        setIsSearching(false);
+    };
+
+    // Hàm khi click chọn 1 danh mục
+    const handleSelectCategory = (category) => {
+        if (formData.categoryIds.includes(category.id)) {
+            setSearchKeyword('');
+            setSearchResults([]);
+            return;
+        }
+
+        const newIds = [...formData.categoryIds, category.id];
+        const newSelected = [...selectedCategories, { id: category.id, name: category.categoryName }];
+        
+        setFormData({ ...formData, categoryIds: newIds });
+        setSelectedCategories(newSelected);
+        setSearchKeyword('');
+        setSearchResults([]);
+    };
+
+    const handleRemoveCategory = (categoryId) => {
+        setFormData({
+            ...formData,
+            categoryIds: formData.categoryIds.filter(id => id !== categoryId)
+        });
+        setSelectedCategories(selectedCategories.filter(cat => cat.id !== categoryId));
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -45,8 +83,8 @@ export default function ProjectUploadPage() {
         e.preventDefault();
         setError('');
 
-        if (!formData.categoryId) {
-            setError('Vui lòng chọn danh mục cho dự án.');
+        if (formData.categoryIds.length === 0) {
+            setError('Vui lòng tìm kiếm và chọn danh mục cho dự án.');
             return;
         }
 
@@ -62,7 +100,7 @@ export default function ProjectUploadPage() {
                 ...formData,
                 targetAmount: parseFloat(formData.targetAmount),
                 backgroundImageURL,
-                categoryIds: [formData.categoryId],
+                categoryIds: formData.categoryIds // Backend nhận mảng categoryIds
             });
 
             setSuccess('Dự án đã được tạo thành công! Đang chờ quản trị viên phê duyệt.');
@@ -86,6 +124,8 @@ export default function ProjectUploadPage() {
             {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm">{success}</div>}
 
             <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+                
+                {/* 1. Tên dự án */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Tên dự án <span className="text-red-500">*</span></label>
                     <input
@@ -98,6 +138,7 @@ export default function ProjectUploadPage() {
                     />
                 </div>
 
+                {/* 2. Mô tả */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Mô tả chi tiết <span className="text-red-500">*</span></label>
                     <textarea
@@ -111,6 +152,7 @@ export default function ProjectUploadPage() {
                     />
                 </div>
 
+                {/* 3. Mục tiêu và Số tài khoản */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Mục tiêu gây quỹ (₫) <span className="text-red-500">*</span></label>
@@ -137,6 +179,7 @@ export default function ProjectUploadPage() {
                     </div>
                 </div>
 
+                {/* 4. Ngày tháng */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày bắt đầu <span className="text-red-500">*</span></label>
@@ -165,27 +208,61 @@ export default function ProjectUploadPage() {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục dự án <span className="text-red-500">*</span></label>
-                    {categories.length === 0 ? (
-                        <p className="text-sm text-gray-500">Chưa có danh mục nào trong hệ thống. Vui lòng liên hệ quản trị viên để tạo danh mục.</p>
-                    ) : (
-                        <select
-                            name="categoryId"
-                            className="input-field"
-                            value={formData.categoryId}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="">-- Chọn danh mục --</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.categoryName}
-                                </option>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục dự án (Có thể chọn nhiều) <span className="text-red-500">*</span></label>
+                    
+                    {/* Hiển thị danh sách các Tag đã chọn */}
+                    {selectedCategories.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                            {selectedCategories.map(cat => (
+                                <div key={cat.id} className="flex items-center gap-1 bg-primary-50 text-primary-700 px-3 py-1 rounded-full text-sm font-medium border border-primary-100">
+                                    {cat.name}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleRemoveCategory(cat.id)}
+                                        className="hover:text-primary-900 ml-1"
+                                    >
+                                        &times;
+                                    </button>
+                                </div>
                             ))}
-                        </select>
+                        </div>
                     )}
+
+                    {/* Ô tìm kiếm danh mục */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            className="input-field"
+                            placeholder="Tìm và thêm danh mục..."
+                            value={searchKeyword}
+                            onChange={(e) => handleSearchCategory(e.target.value)}
+                        />
+                        
+                        {searchKeyword && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                {isSearching ? (
+                                    <div className="p-3 text-center text-sm text-gray-500">Đang tìm...</div>
+                                ) : searchResults.length > 0 ? (
+                                    searchResults.map(cat => (
+                                        <div 
+                                            key={cat.id} 
+                                            className={`p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0 ${formData.categoryIds.includes(cat.id) ? 'opacity-50' : ''}`}
+                                            onClick={() => handleSelectCategory(cat)}
+                                        >
+                                            <div className="font-medium text-gray-800">
+                                                {cat.categoryName} {formData.categoryIds.includes(cat.id) && '(Đã chọn)'}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="p-3 text-center text-sm text-gray-500">Không tìm thấy.</div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
+                {/* 6. Upload ảnh */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">Ảnh đại diện dự án</label>
                     <div className="flex gap-4 items-start">
@@ -208,6 +285,7 @@ export default function ProjectUploadPage() {
                     />
                 </div>
 
+                {/* 7. Thông báo & Submit */}
                 <div className="bg-amber-50 rounded-lg p-4 text-sm text-amber-700">
                     ⚠️ Dự án sẽ được gửi đến quản trị viên xét duyệt trước khi công khai. Quá trình xét duyệt có thể mất 1-3 ngày làm việc.
                 </div>

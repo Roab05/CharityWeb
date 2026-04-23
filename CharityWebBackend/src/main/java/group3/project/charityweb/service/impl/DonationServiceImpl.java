@@ -7,6 +7,7 @@ import group3.project.charityweb.model.dto.response.PaymentUrlResponse;
 import group3.project.charityweb.model.entity.*;
 import group3.project.charityweb.model.enums.DonationStatus;
 import group3.project.charityweb.model.enums.ProjectStatus;
+import group3.project.charityweb.model.enums.TransactionStatus;
 import group3.project.charityweb.repository.AccountRepository;
 import group3.project.charityweb.repository.DonationRepository;
 import group3.project.charityweb.repository.ProjectRepository;
@@ -60,7 +61,7 @@ public class DonationServiceImpl implements DonationService {
         transaction.setDonation(donation);
         transaction.setAmount(request.getAmount());
         transaction.setGatewayName("VNPAY");
-        transaction.setPaymentStatus(2);
+        transaction.setPaymentStatus(TransactionStatus.PENDING);
         transaction = transactionRepository.save(transaction);
 
         String url = paymentService.createPaymentUrl(transaction, httpRequest);

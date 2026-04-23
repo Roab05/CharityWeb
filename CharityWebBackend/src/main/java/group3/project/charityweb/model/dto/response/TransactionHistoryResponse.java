@@ -1,6 +1,7 @@
 package group3.project.charityweb.model.dto.response;
 
 import group3.project.charityweb.model.enums.DonationStatus;
+import group3.project.charityweb.model.enums.TransactionStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,7 +18,7 @@ public class TransactionHistoryResponse {
     private String gatewayName;
     private String gatewayTransactionNo;
     private BigDecimal amount;
-    private Integer paymentStatus;
+    private TransactionStatus paymentStatus;
     private LocalDateTime completedAt;
     private LocalDateTime donationTime;
     private DonationStatus donationStatus;

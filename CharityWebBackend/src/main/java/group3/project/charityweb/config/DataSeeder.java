@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 public class DataSeeder {
 
     @Bean
-    public CommandLineRunner initData(AccountRepository accountRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner initData(AccountRepository accountRepository,
+                                      PasswordEncoder passwordEncoder) {
         return _ -> {
             if (!accountRepository.existsByUsername("admin")) {
                 Admin admin = new Admin();

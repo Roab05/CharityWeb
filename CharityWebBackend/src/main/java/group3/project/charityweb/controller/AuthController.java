@@ -12,6 +12,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Map;
 
 @RestController
@@ -23,27 +24,43 @@ public class AuthController {
     private final CookieUtils cookieUtils;
 
     @PostMapping("/register/individual")
-    public ResponseEntity<?> registerIndividual(@RequestBody RegisterIndivRequest request) {
-        String newIndId = authService.registerIndividual(request); //
-        return ResponseEntity.status(HttpStatus.CREATED) //
+    public ResponseEntity<?> registerIndividual(@RequestBody RegisterIndivRequest request, Principal principal) {
+        if (principal != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Bạn đã đăng nhập. Vui lòng đăng xuất trước khi tạo tài khoản mới."));
+        }
+
+        String newIndId = authService.registerIndividual(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
-                        "message", "Đăng ký tài khoản Cá nhân thành công.", //
-                        "id", newIndId //
+                        "message", "Đăng ký tài khoản Cá nhân thành công.",
+                        "id", newIndId
                 ));
     }
 
     @PostMapping("/register/organization")
-    public ResponseEntity<?> registerOrganization(@RequestBody RegisterOrgRequest request) {
-        String newOrgId = authService.registerOrganization(request); //
-        return ResponseEntity.status(HttpStatus.CREATED) //
+    public ResponseEntity<?> registerOrganization(@RequestBody RegisterOrgRequest request, Principal principal) {
+        if (principal != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Bạn đã đăng nhập. Vui lòng đăng xuất trước khi tạo tài khoản mới."));
+        }
+
+        String newOrgId = authService.registerOrganization(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(Map.of(
-                        "message", "Đăng ký Tổ chức thành công. Vui lòng chờ Admin phê duyệt.", //
-                        "id", newOrgId //
+                        "message", "Đăng ký Tổ chức thành công. Vui lòng chờ Admin phê duyệt.",
+                        "id", newOrgId
                 ));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request, Principal principal) {
+        // Chặn đăng nhập chồng chéo
+        if (principal != null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Bạn đã đăng nhập rồi."));
+        }
+
         Map<String, Object> authData = authService.authenticate(request);
 
         String accessToken = (String) authData.get("accessToken");
@@ -77,7 +94,13 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() {
+    public ResponseEntity<?> logout(Principal principal) {
+        // Chặn đăng xuất khi chưa đăng nhập
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Bạn chưa đăng nhập hoặc đã đăng xuất trước đó."));
+        }
+
         ResponseCookie cleanCookie = cookieUtils.getCleanRefreshTokenCookie();
 
         return ResponseEntity.ok()

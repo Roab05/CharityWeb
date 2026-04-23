@@ -93,12 +93,24 @@ function SuggestionChips({ suggestions, onSelect, disabled }) {
 // --- Main Chatbot Widget ---
 export default function ChatbotWidget() {
     const [isOpen, setIsOpen] = useState(false);
-    const [messages, setMessages] = useState([]);
+    
+    // ĐỌC DỮ LIỆU TỪ SESSION STORAGE KHI KHỞI TẠO COMPONENT
+    const [messages, setMessages] = useState(() => {
+        const savedMessages = sessionStorage.getItem('charityBot_messages');
+        return savedMessages ? JSON.parse(savedMessages) : [];
+    });
+    
+    const [conversationId, setConversationId] = useState(() => {
+        return sessionStorage.getItem('charityBot_conversationId') || null;
+    });
+    
+    const [hasGreeted, setHasGreeted] = useState(() => {
+        return sessionStorage.getItem('charityBot_hasGreeted') === 'true';
+    });
+
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
-    const [conversationId, setConversationId] = useState(null);
     const [suggestions, setSuggestions] = useState([]);
-    const [hasGreeted, setHasGreeted] = useState(false);
     const [error, setError] = useState(null);
 
     const messagesEndRef = useRef(null);
@@ -111,6 +123,23 @@ export default function ChatbotWidget() {
     useEffect(() => {
         scrollToBottom();
     }, [messages, loading, scrollToBottom]);
+
+    // LƯU TRỮ VÀO SESSION STORAGE KHI STATE THAY ĐỔI
+    useEffect(() => {
+        sessionStorage.setItem('charityBot_messages', JSON.stringify(messages));
+    }, [messages]);
+
+    useEffect(() => {
+        if (conversationId) {
+            sessionStorage.setItem('charityBot_conversationId', conversationId);
+        } else {
+            sessionStorage.removeItem('charityBot_conversationId');
+        }
+    }, [conversationId]);
+
+    useEffect(() => {
+        sessionStorage.setItem('charityBot_hasGreeted', hasGreeted);
+    }, [hasGreeted]);
 
     // Greet on first open
     useEffect(() => {
@@ -158,9 +187,6 @@ export default function ChatbotWidget() {
 
             const botMsg = { role: 'bot', content: data.answer };
             setMessages((prev) => [...prev, botMsg]);
-
-            // Load new suggestions after response
-            loadSuggestions();
         } catch (err) {
             const status = err.response?.status;
             let errMsg;
@@ -227,6 +253,7 @@ export default function ChatbotWidget() {
                             </div>
                         </div>
                         <div className="flex items-center gap-1">
+                            {/* Nút Thu nhỏ: Chỉ ẩn Chatbox, giữ nguyên lịch sử */}
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
@@ -234,6 +261,8 @@ export default function ChatbotWidget() {
                             >
                                 <MinimizeIcon />
                             </button>
+                            
+                            {/* Nút Đóng: Xóa toàn bộ State và Session Storage để reset */}
                             <button
                                 onClick={() => {
                                     setIsOpen(false);
@@ -242,6 +271,9 @@ export default function ChatbotWidget() {
                                     setSuggestions([]);
                                     setHasGreeted(false);
                                     setError(null);
+                                    sessionStorage.removeItem('charityBot_messages');
+                                    sessionStorage.removeItem('charityBot_conversationId');
+                                    sessionStorage.removeItem('charityBot_hasGreeted');
                                 }}
                                 className="p-1.5 hover:bg-white/20 rounded-lg transition-colors"
                                 aria-label="Đóng"

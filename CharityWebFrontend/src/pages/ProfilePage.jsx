@@ -269,7 +269,8 @@ export default function ProfilePage() {
                     ) : (
                         <div className="space-y-3 max-h-[500px] overflow-y-auto">
                             {transactions.map((t, i) => {
-                                const isSuccess = t.paymentStatus === 0;
+                                const statusMap = { SUCCESS: 'badge-green', PROCESSING: 'badge-yellow', FAILED: 'badge-red' };
+                                const labelMap = { SUCCESS: 'Thành công', PROCESSING: 'Đang xử lý', FAILED: 'Thất bại' };
                                 return (
                                     <div key={i} className="flex items-start justify-between p-4 bg-gray-50 rounded-xl">
                                         <div className="flex-1 min-w-0 mr-4">
@@ -277,7 +278,7 @@ export default function ProfilePage() {
                                             <p className="text-xs text-gray-500 mt-1">Cổng: {t.gatewayName}{t.gatewayTransactionNo ? ` • Mã GD: ${t.gatewayTransactionNo}` : ''}</p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-xs text-gray-400">{t.completedAt ? new Date(t.completedAt).toLocaleString('vi-VN') : (t.donationTime ? new Date(t.donationTime).toLocaleString('vi-VN') : '')}</span>
-                                                <span className={isSuccess ? 'badge-green' : 'badge-red'}>{isSuccess ? 'Thành công' : 'Thất bại'}</span>
+                                                <span className={statusMap[t.paymentStatus] || 'badge-gray'}>{labelMap[t.paymentStatus] || t.paymentStatus}</span>
                                             </div>
                                         </div>
                                         <span className="text-primary-600 font-bold whitespace-nowrap">{formatCurrency(t.amount)}</span>

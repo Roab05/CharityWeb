@@ -45,6 +45,9 @@ public class Project {
     @Column(name = "current_amount", precision = 19, scale = 4)
     private BigDecimal currentAmount = BigDecimal.ZERO;
 
+    @Column(name = "disbursed_amount", precision = 19, scale = 4)
+    private BigDecimal disbursedAmount = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ProjectStatus status;
