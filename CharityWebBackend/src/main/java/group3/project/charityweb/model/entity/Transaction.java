@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.entity;
 
+import group3.project.charityweb.model.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ public class Transaction {
     private String transactionId;
 
     @Column(name = "gateway_name")
-    private String gatewayName; // VNPay, Momo...
+    private String gatewayName;
 
     @Column(name = "gateway_transaction_no")
     private String gatewayTransactionNo;
@@ -26,8 +27,12 @@ public class Transaction {
     @Column(name = "amount", precision = 19, scale = 4)
     private BigDecimal amount;
 
-    @Column(name = "payment_status")
-    private Integer paymentStatus;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_status", nullable = false, length = 20)
+    private TransactionStatus paymentStatus;
+
+    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)")
+    private LocalDateTime createdAt;
 
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
@@ -35,4 +40,14 @@ public class Transaction {
     @OneToOne
     @JoinColumn(name = "donation_id")
     private Donation donation;
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (paymentStatus == null) {
+            paymentStatus = TransactionStatus.PENDING;
+        }
+    }
 }

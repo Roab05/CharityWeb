@@ -12,6 +12,7 @@ import java.util.Optional;
 public interface OrganizationRepository extends JpaRepository<Organization, String> {
     Optional<Organization> findByUsername(String username);
     List<Organization> findByStatusOrderByCreatedAtDesc(AccountStatus status);
+    List<Organization> findByStatusAndNameContainingIgnoreCaseOrderByCreatedAtDesc(AccountStatus status, String name);
     Page<Organization> findByStatusOrderByCreatedAtDesc(AccountStatus status, Pageable pageable);
     long countByStatus(AccountStatus status);
     boolean existsByPhone(String phone);

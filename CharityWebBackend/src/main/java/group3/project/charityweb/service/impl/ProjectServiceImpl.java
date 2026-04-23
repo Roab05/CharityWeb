@@ -1,11 +1,13 @@
 package group3.project.charityweb.service.impl;
 
+import group3.project.charityweb.exception.DuplicateResourceException;
+import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
-import group3.project.charityweb.model.dto.response.ProjectCategoryResponse;
+import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
+import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ProjectService;
-import group3.project.charityweb.exception.InvalidDisbursementException;
 import group3.project.charityweb.exception.ResourceNotFoundException;
 import group3.project.charityweb.exception.UnauthorizedAccessException;
 import group3.project.charityweb.model.dto.request.ActivityRequest;
@@ -26,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -55,14 +57,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setBackgroundImageURL(request.getBackgroundImageURL());
         project.setBankAccountNo(request.getBankAccountNo());
 
-        if (request.getCategoryIds() == null || request.getCategoryIds().isEmpty()) {
-            throw new InvalidDisbursementException("Vui lòng chọn ít nhất 1 danh mục cho dự án.");
-        }
-
         List<ProjectCategory> categories = categoryRepository.findAllById(request.getCategoryIds());
-        if (categories.size() != request.getCategoryIds().size()) {
-            throw new InvalidDisbursementException("Một hoặc nhiều danh mục không tồn tại.");
-        }
         project.setCategories(categories);
 
         project.setOrganizations(List.of(org));
@@ -99,19 +94,59 @@ public class ProjectServiceImpl implements ProjectService {
         return projectPage.map(this::mapToProjectResponse);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<OrganizationSelectorResponse> getOrganizationsForSelector(String name) {
+        List<Organization> organizations = (name == null || name.isBlank())
+                ? organizationRepository.findByStatusOrderByCreatedAtDesc(AccountStatus.ACTIVE)
+                : organizationRepository.findByStatusAndNameContainingIgnoreCaseOrderByCreatedAtDesc(AccountStatus.ACTIVE, name.trim());
+
+        return organizations.stream()
+                .map(org -> OrganizationSelectorResponse.builder()
+                        .organizationId(org.getId())
+                        .name(org.getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public void addOrganizationToProject(String username, String projectId, AddProjectOrganizationRequest request) {
+        if (request == null || request.getOrganizationId() == null || request.getOrganizationId().isBlank()) {
+            throw new ResourceNotFoundException("Thiếu organizationId để thêm vào dự án.");
+        }
+
+        Organization actor = organizationRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedAccessException("Tài khoản không phải Tổ chức!"));
+        Project project = getProjectEntityById(projectId);
+
+        boolean isManager = project.getOrganizations().stream()
+                .anyMatch(org -> org.getId().equals(actor.getId()));
+        if (!isManager) {
+            throw new UnauthorizedAccessException("Bạn không có quyền thêm tổ chức vào dự án này!");
+        }
+
+        Organization target = organizationRepository.findById(request.getOrganizationId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy tổ chức cần thêm!"));
+
+        if (target.getStatus() != AccountStatus.ACTIVE) {
+            throw new UnauthorizedAccessException("Chỉ có thể thêm tổ chức đang hoạt động vào dự án.");
+        }
+
+        List<Organization> organizations = new ArrayList<>(project.getOrganizations() == null ? List.of() : project.getOrganizations());
+        boolean alreadyManaged = organizations.stream().anyMatch(org -> org.getId().equals(target.getId()));
+        if (alreadyManaged) {
+            throw new DuplicateResourceException("Tổ chức đã nằm trong danh sách quản lý dự án.");
+        }
+
+        organizations.add(target);
+        project.setOrganizations(organizations);
+        projectRepository.save(project);
+    }
+
     public ProjectResponse getProjectResponseById(String projectId) {
         Project project = getProjectEntityById(projectId);
         return mapToProjectResponse(project);
-    }
-
-    public List<ProjectCategoryResponse> getAllCategories() {
-        return categoryRepository.findAll().stream()
-                .map(category -> ProjectCategoryResponse.builder()
-                        .id(category.getId())
-                        .categoryName(category.getCategoryName())
-                        .description(category.getDescription())
-                        .build())
-                .collect(Collectors.toList());
     }
 
     private ProjectResponse mapToProjectResponse(Project project) {

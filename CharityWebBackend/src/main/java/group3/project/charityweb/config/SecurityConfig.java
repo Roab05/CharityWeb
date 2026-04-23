@@ -42,6 +42,7 @@ public class SecurityConfig {
                         // 1. PUBLIC APIs
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/api/v1/images/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/projects/organizations").hasAnyAuthority("ROLE_ORGANIZATION", "ROLE_ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects/*/activities").permitAll()
@@ -59,6 +60,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.GET, "/api/v1/projects/me/managed").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/projects").hasAuthority("ROLE_ORGANIZATION")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/organizations").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/projects/*/activities").hasAuthority("ROLE_ORGANIZATION")
                         .requestMatchers(HttpMethod.POST, "/api/v1/activities/*/interactions")
                         .hasAnyAuthority("ROLE_INDIVIDUAL", "ROLE_ORGANIZATION")

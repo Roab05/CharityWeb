@@ -39,7 +39,3 @@ Thumbs.db
 .vscode/
 backup/
 src/main/resources/application-dev.properties
-target/
-*.class
-.idea/
-*.iml

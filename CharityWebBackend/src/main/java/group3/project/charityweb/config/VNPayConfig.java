@@ -19,6 +19,12 @@ public class VNPayConfig {
     @Value("${vnpay.returnUrl}")
     private String vnpReturnUrl;
 
+    @Value("${vnpay.ipnUrl:http://localhost:8080/api/v1/payments/ipn}")
+    private String vnpIpnUrl;
+
+    @Value("${payment.pending-timeout-minutes:20}")
+    private long pendingTimeoutMinutes;
+
     public String getVnpVersion() { return "2.1.0"; }
     public String getVnpCommand() { return "pay"; }
 }

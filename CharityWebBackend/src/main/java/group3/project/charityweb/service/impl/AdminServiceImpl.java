@@ -24,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -117,33 +115,11 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public String createCategory(CategoryRequest request) {
-        if (request.getCategoryName() == null || request.getCategoryName().trim().isEmpty()) {
-            throw new InvalidDisbursementException("Tên danh mục không được để trống!");
-        }
-
-        String categoryId = request.getId();
-        if (categoryId == null || categoryId.trim().isEmpty()) {
-            categoryId = request.getCategoryName()
-                    .toLowerCase(Locale.ROOT)
-                    .trim()
-                    .replaceAll("[^a-z0-9\\s-]", "")
-                    .replaceAll("\\s+", "-");
-
-            if (categoryId.isEmpty()) {
-                categoryId = "category";
-            }
-        }
-
-        if (categoryRepository.existsById(categoryId)) {
-            categoryId = categoryId + "-" + UUID.randomUUID().toString().substring(0, 6);
-        }
-
-        if (categoryRepository.existsById(categoryId)) {
+        if (categoryRepository.existsById(request.getId())) {
             throw new DuplicateResourceException("Mã danh mục đã tồn tại!");
         }
-
         ProjectCategory category = new ProjectCategory();
-        category.setId(categoryId);
+        category.setId(request.getId());
         category.setCategoryName(request.getCategoryName());
         category.setDescription(request.getDescription());
         categoryRepository.save(category);
