@@ -10,4 +10,5 @@ public interface ActivityService {
     Page<ActivityResponse> getProjectActivities(String projectId, int page, int size);
     void updateActivityStatus(String username, String activityId, UpdateActivityStatusRequest request);
     void updateActivity(String username, String activityId, ActivityRequest request);
+    void deleteActivity(String username, String activityId);
 }

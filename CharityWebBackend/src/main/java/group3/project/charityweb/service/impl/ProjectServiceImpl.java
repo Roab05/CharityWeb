@@ -1,9 +1,11 @@
 package group3.project.charityweb.service.impl;
 
 import group3.project.charityweb.exception.DuplicateResourceException;
+import group3.project.charityweb.exception.InvalidDisbursementException;
 import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
+import group3.project.charityweb.model.dto.response.ProjectCategoryResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.AccountStatus;
 import group3.project.charityweb.model.enums.ProjectStatus;
@@ -57,13 +59,40 @@ public class ProjectServiceImpl implements ProjectService {
         project.setBackgroundImageURL(request.getBackgroundImageURL());
         project.setBankAccountNo(request.getBankAccountNo());
 
+        if (request.getCategoryIds() == null || request.getCategoryIds().isEmpty()) {
+            throw new InvalidDisbursementException("Vui lòng chọn ít nhất 1 danh mục cho dự án.");
+        }
+
         List<ProjectCategory> categories = categoryRepository.findAllById(request.getCategoryIds());
+        if (categories.size() != request.getCategoryIds().size()) {
+            throw new InvalidDisbursementException("Một hoặc nhiều danh mục không tồn tại.");
+        }
+
         project.setCategories(categories);
 
         project.setOrganizations(List.of(org));
 
         projectRepository.save(project);
         return project.getProjectId();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectCategoryResponse> searchCategories(String keyword, int page, int size) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<ProjectCategory> categoryPage;
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            categoryPage = categoryRepository.findByCategoryNameContainingIgnoreCase(keyword.trim(), pageRequest);
+        } else {
+            categoryPage = categoryRepository.findAll(pageRequest);
+        }
+
+        return categoryPage.map(category -> ProjectCategoryResponse.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .description(category.getDescription())
+                .build());
     }
 
     @Transactional(readOnly = true)

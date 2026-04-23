@@ -1,5 +1,6 @@
 package group3.project.charityweb.model.dto.response;
 
+import group3.project.charityweb.model.enums.ActivityStatus;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,4 +11,5 @@ public class ActivityResponse {
     private String title;
     private String content;
     private String imageURL;
+    private ActivityStatus status;
 }

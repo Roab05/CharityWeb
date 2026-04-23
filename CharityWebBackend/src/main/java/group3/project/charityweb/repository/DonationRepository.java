@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -22,4 +23,17 @@ public interface DonationRepository extends JpaRepository<Donation, String> {
 
     @Query("SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.status = :status")
     BigDecimal sumAllSuccessfulDonations(@Param("status") DonationStatus status);
+
+        @Query("SELECT d FROM Donation d LEFT JOIN FETCH d.transaction t WHERE d.status = :status AND d.donationTime <= :cutoff")
+        List<Donation> findByStatusAndDonationTimeBeforeWithTransaction(
+            @Param("status") DonationStatus status,
+            @Param("cutoff") LocalDateTime cutoff
+        );
+
+        @Query("SELECT d FROM Donation d LEFT JOIN FETCH d.transaction t WHERE d.user.id = :userId AND d.status = :status AND d.donationTime <= :cutoff")
+        List<Donation> findByUserIdAndStatusAndDonationTimeBeforeWithTransaction(
+            @Param("userId") String userId,
+            @Param("status") DonationStatus status,
+            @Param("cutoff") LocalDateTime cutoff
+        );
 }

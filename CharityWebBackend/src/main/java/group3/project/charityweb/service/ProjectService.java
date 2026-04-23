@@ -5,6 +5,7 @@ import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
+import group3.project.charityweb.model.dto.response.ProjectCategoryResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import org.springframework.data.domain.Page;
@@ -18,4 +19,5 @@ public interface ProjectService {
     ProjectResponse getProjectResponseById(String projectId);
     List<OrganizationSelectorResponse> getOrganizationsForSelector(String name);
     void addOrganizationToProject(String username, String projectId, AddProjectOrganizationRequest request);
+    Page<ProjectCategoryResponse> searchCategories(String keyword, int page, int size);
 }

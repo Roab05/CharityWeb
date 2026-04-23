@@ -5,6 +5,7 @@ import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
 import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
+import group3.project.charityweb.model.dto.response.ProjectCategoryResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ActivityService;
@@ -46,6 +47,11 @@ public class ProjectController {
         Page<ProjectResponse> projects = projectService.getAllProjects(status, categoryId, page, size);
         return ResponseEntity.ok(projects);
     }
+
+//    @GetMapping("/categories")
+//    public ResponseEntity<java.util.List<ProjectCategoryResponse>> getAllCategories() {
+//        return ResponseEntity.ok(projectService.getAllCategories());
+//    }
 
     @GetMapping("/me/managed")
     public ResponseEntity<Page<ProjectResponse>> getMyManagedProjects(
@@ -97,5 +103,15 @@ public class ProjectController {
             @RequestParam(defaultValue = "10") int size) {
         Page<ActivityResponse> activities = activityService.getProjectActivities(projectId, page, size);
         return ResponseEntity.ok(activities);
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<Page<ProjectCategoryResponse>> getCategories(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<ProjectCategoryResponse> categories = projectService.searchCategories(keyword, page, size);
+        return ResponseEntity.ok(categories);
     }
 }
