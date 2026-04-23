@@ -19,7 +19,7 @@ public class Transaction {
     private String transactionId;
 
     @Column(name = "gateway_name")
-    private String gatewayName; // VNPay, Momo...
+    private String gatewayName;
 
     @Column(name = "gateway_transaction_no")
     private String gatewayTransactionNo;
@@ -31,7 +31,7 @@ public class Transaction {
     @Column(name = "payment_status", nullable = false, length = 20)
     private TransactionStatus paymentStatus;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, columnDefinition = "DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6)")
     private LocalDateTime createdAt;
 
     @Column(name = "completed_at")

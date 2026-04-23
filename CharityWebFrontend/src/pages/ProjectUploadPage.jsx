@@ -1,163 +1,226 @@
-import React, { useState } from "react";
-import { uploadProject } from "../services/ProjectService";
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { createProject } from '../services/ProjectService';
+import { uploadFile } from '../services/FileService';
+import { getProjectCategories } from '../services/CategoryService';
 
-export default function ProjectUploadPage({ setCurrentPage }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    description: "",
-    targetAmount: "",
-    imageUrl: "",
-    startDate: "",
-    endDate: ""
-  });
-
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData({
-      ...formData,
-      [name]: files ? files[0] : value,
+export default function ProjectUploadPage() {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+    const [categories, setCategories] = useState([]);
+    const [formData, setFormData] = useState({
+        projectName: '',
+        description: '',
+        targetAmount: '',
+        startDate: '',
+        endDate: '',
+        backgroundImageURL: '',
+        bankAccountNo: '',
+        categoryId: '',
     });
-  };
+    const [imageFile, setImageFile] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    uploadProject(formData);
-    setCurrentPage('home');
-  };
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const res = await getProjectCategories();
+                setCategories(res.data || []);
+            } catch {
+                setCategories([]);
+            }
+        };
+        fetchCategories();
+    }, []);
 
-  return (
-    <div className="flex justify-center items-start min-h-screen bg-gray-50 py-12 px-4">
-      <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-3xl">
-        <h1 className="text-2xl font-bold text-green-700 mb-2">
-          Đăng tải dự án gây quỹ
-        </h1>
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          {/* Tên dự án */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              Tên dự án *
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-            />
-          </div>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
 
-          {/* Phân loại */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              Phân loại *
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-            >
-              <option value="">-- Chọn phân loại --</option>
-              <option value="Giáo dục">Giáo dục</option>
-              <option value="Động vật hoang dã">Động vật hoang dã</option>
-              <option value="Xã hội">Xã hội</option>
-              <option value="Môi trường">Môi trường</option>
-              <option value="Khác">Khác</option>
-            </select>
-          </div>
+        if (!formData.categoryId) {
+            setError('Vui lòng chọn danh mục cho dự án.');
+            return;
+        }
 
-          {/* Mô tả */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              Mô tả chi tiết *
-            </label>
-            <textarea
-              name="description"
-              rows="5"
-              value={formData.description}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600 resize-none"
-            ></textarea>
-          </div>
+        setLoading(true);
+        try {
+            let backgroundImageURL = formData.backgroundImageURL;
+            if (imageFile) {
+                const uploadRes = await uploadFile(imageFile);
+                backgroundImageURL = uploadRes.data.url;
+            }
 
-          {/* Mục tiêu gây quỹ */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              Mục tiêu gây quỹ (VNĐ) *
-            </label>
-            <input
-              type="number"
-              name="targetAmount"
-              value={formData.targetAmount}
-              onChange={handleChange}
-              required
-              min="1000"
-              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-green-600"
-            />
-          </div>
+            await createProject({
+                ...formData,
+                targetAmount: parseFloat(formData.targetAmount),
+                backgroundImageURL,
+                categoryIds: [formData.categoryId],
+            });
 
-          {/* Ảnh minh họa */}
-          <div>
-            <label className="block font-medium text-gray-700 mb-2">
-              Ảnh minh họa dự án (link URL) *
-            </label>
-            <input
-              type="text"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              required
-              className="w-full border border-gray-300 rounded-lg p-3 text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-600"
-            />
-          </div>
+            setSuccess('Dự án đã được tạo thành công! Đang chờ quản trị viên phê duyệt.');
+            setTimeout(() => navigate('/projects'), 2000);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Có lỗi xảy ra khi tạo dự án.');
+        }
+        setLoading(false);
+    };
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Ngày bắt đầu */}
-            <div>
-              <label className="block font-medium text-gray-700 mb-2">
-                Ngày bắt đầu *
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={formData.startDate}
-                onChange={handleChange}
-                required
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
+    const today = new Date().toISOString().split('T')[0];
+
+    return (
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-800">Tạo dự án gây quỹ</h1>
+                <p className="text-gray-500 mt-2">Điền thông tin dự án để bắt đầu kêu gọi quyên góp</p>
             </div>
-            {/* Ngày kết thúc */}
-            <div>
-              <label className="block font-medium text-gray-700 mb-2">
-                Ngày kết thúc *
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={formData.endDate}
-                onChange={handleChange}
-                required
-                min={new Date().toISOString().split("T")[0]}
-                className="w-full border border-gray-300 rounded-lg p-3 text-gray-600 focus:outline-none focus:ring-2 focus:ring-green-600"
-              />
-            </div>
-          </div>
 
-          {/* Nút gửi */}
-          <button
-            type="submit"
-            className="bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg py-3 transition-all duration-200"
-          >
-            Đăng dự án
-          </button>
-        </form>
-      </div>
-    </div>
-  );
+            {error && <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">{error}</div>}
+            {success && <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg mb-6 text-sm">{success}</div>}
+
+            <form onSubmit={handleSubmit} className="card p-6 space-y-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Tên dự án <span className="text-red-500">*</span></label>
+                    <input
+                        name="projectName"
+                        className="input-field"
+                        value={formData.projectName}
+                        onChange={handleChange}
+                        required
+                        placeholder="VD: Xây trường học cho trẻ em vùng cao"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Mô tả chi tiết <span className="text-red-500">*</span></label>
+                    <textarea
+                        name="description"
+                        className="input-field resize-none"
+                        rows="6"
+                        value={formData.description}
+                        onChange={handleChange}
+                        required
+                        placeholder="Mô tả về dự án, mục đích, đối tượng thụ hưởng..."
+                    />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Mục tiêu gây quỹ (₫) <span className="text-red-500">*</span></label>
+                        <input
+                            type="number"
+                            name="targetAmount"
+                            className="input-field"
+                            value={formData.targetAmount}
+                            onChange={handleChange}
+                            required
+                            min="100000"
+                            placeholder="10000000"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Số tài khoản ngân hàng</label>
+                        <input
+                            name="bankAccountNo"
+                            className="input-field"
+                            value={formData.bankAccountNo}
+                            onChange={handleChange}
+                            placeholder="VD: 123456789"
+                        />
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày bắt đầu <span className="text-red-500">*</span></label>
+                        <input
+                            type="date"
+                            name="startDate"
+                            className="input-field"
+                            value={formData.startDate}
+                            onChange={handleChange}
+                            required
+                            min={today}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1.5">Ngày kết thúc <span className="text-red-500">*</span></label>
+                        <input
+                            type="date"
+                            name="endDate"
+                            className="input-field"
+                            value={formData.endDate}
+                            onChange={handleChange}
+                            required
+                            min={formData.startDate || today}
+                        />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Danh mục dự án <span className="text-red-500">*</span></label>
+                    {categories.length === 0 ? (
+                        <p className="text-sm text-gray-500">Chưa có danh mục nào trong hệ thống. Vui lòng liên hệ quản trị viên để tạo danh mục.</p>
+                    ) : (
+                        <select
+                            name="categoryId"
+                            className="input-field"
+                            value={formData.categoryId}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="">-- Chọn danh mục --</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.categoryName}
+                                </option>
+                            ))}
+                        </select>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Ảnh đại diện dự án</label>
+                    <div className="flex gap-4 items-start">
+                        <div className="flex-1">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="input-field text-sm"
+                                onChange={(e) => setImageFile(e.target.files[0])}
+                            />
+                            <p className="text-xs text-gray-400 mt-1">Hoặc nhập URL hình ảnh bên dưới</p>
+                        </div>
+                    </div>
+                    <input
+                        name="backgroundImageURL"
+                        className="input-field mt-2"
+                        value={formData.backgroundImageURL}
+                        onChange={handleChange}
+                        placeholder="https://example.com/image.jpg (không bắt buộc nếu đã upload ảnh)"
+                    />
+                </div>
+
+                <div className="bg-amber-50 rounded-lg p-4 text-sm text-amber-700">
+                    ⚠️ Dự án sẽ được gửi đến quản trị viên xét duyệt trước khi công khai. Quá trình xét duyệt có thể mất 1-3 ngày làm việc.
+                </div>
+
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full py-3 rounded-xl font-semibold text-white transition-all ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700 shadow-sm hover:shadow-md'
+                        }`}
+                >
+                    {loading ? 'Đang tạo dự án...' : 'Tạo dự án'}
+                </button>
+            </form>
+        </div>
+    );
 }

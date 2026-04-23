@@ -53,7 +53,7 @@ public class ChatbotServiceImpl implements ChatbotService {
         Instant start = Instant.now();
 
         Instant contextStart = Instant.now();
-        ChatContext context = contextBuilderService.build(request.getProjectId());
+        ChatContext context = contextBuilderService.build(request.getProjectId(), request.getQuestion());
         String systemPrompt = promptTemplateService.buildSystemPrompt(request.getLocale());
         String userPrompt = promptTemplateService.buildUserPrompt(request.getQuestion().trim(), context.getText());
         long contextBuildLatency = Duration.between(contextStart, Instant.now()).toMillis();
@@ -84,7 +84,6 @@ public class ChatbotServiceImpl implements ChatbotService {
                     answer = mergeAnswer(answer, continuationResult.getText());
                     finishReason = continuationResult.getFinishReason();
                 } catch (ChatbotUpstreamException ignored) {
-                    // Keep current answer if continuation attempt fails.
                     break;
                 }
             }
@@ -284,27 +283,27 @@ public class ChatbotServiceImpl implements ChatbotService {
         }
 
         if (historyIntent && donationIntent) {
-            return "Ban co the xem lich su cac luot ung ho tai /api/v1/users/me/donations. " +
-                    "Neu can doi soat chi tiet giao dich thanh toan, hay xem them /api/v1/users/me/transactions.";
+            return "Ban co the xem lich su cac luot ung ho tai users/me/donations. " +
+                    "Neu can doi soat chi tiet giao dich thanh toan, hay xem them users/me/transactions.";
         }
 
         if (historyIntent || transactionIntent) {
-            return "Ban co the xem lich su cac luot ung ho tai /api/v1/users/me/donations. " +
-                    "Neu can doi soat chi tiet giao dich thanh toan, hay xem them /api/v1/users/me/transactions.";
+            return "Ban co the xem lich su cac luot ung ho tai users/me/donations. " +
+                    "Neu can doi soat chi tiet giao dich thanh toan, hay xem them users/me/transactions.";
         }
 
         if (donationIntent) {
             String effectiveProject = (projectId != null && !projectId.isBlank()) ? projectId : "{projectId}";
             return "De quyen gop cho \"" + projectTitle + "\", ban co the lam theo cac buoc:\n" +
-                    "1) Xem chi tiet du an tai /api/v1/projects/" + effectiveProject + "\n" +
-                    "2) Tao donation tai /api/v1/projects/" + effectiveProject + "/donations\n" +
+                    "1) Xem chi tiet du an tai projects/" + effectiveProject + "\n" +
+                    "2) Tao donation tai projects/" + effectiveProject + "/donations\n" +
                     "3) Hoan tat thanh toan VNPay theo URL he thong tra ve\n" +
-                    "4) Kiem tra lich su luot ung ho tai /api/v1/users/me/donations";
+                    "4) Kiem tra lich su luot ung ho tai users/me/donations";
         }
 
-        return "Ban co the xem danh sach du an tai /api/v1/projects, " +
-                "xem chi tiet du an tai /api/v1/projects/{projectId}, " +
-                "va tao donation tai /api/v1/projects/{projectId}/donations.";
+        return "Ban co the xem danh sach du an tai projects, " +
+                "xem chi tiet du an tai projects/{projectId}, " +
+                "va tao donation tai projects/{projectId}/donations.";
     }
 }
 

@@ -1,8 +1,10 @@
 package group3.project.charityweb.controller;
 
 import group3.project.charityweb.model.dto.request.ActivityRequest;
+import group3.project.charityweb.model.dto.request.AddProjectOrganizationRequest;
 import group3.project.charityweb.model.dto.request.CreateProjectRequest;
 import group3.project.charityweb.model.dto.response.ActivityResponse;
+import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
 import group3.project.charityweb.model.dto.response.ProjectResponse;
 import group3.project.charityweb.model.enums.ProjectStatus;
 import group3.project.charityweb.service.ActivityService;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -58,6 +61,21 @@ public class ProjectController {
     public ResponseEntity<ProjectResponse> getProjectDetails(@PathVariable String projectId) {
         ProjectResponse project = projectService.getProjectResponseById(projectId);
         return ResponseEntity.ok(project);
+    }
+
+    @GetMapping("/organizations")
+    public ResponseEntity<List<OrganizationSelectorResponse>> getOrganizationsForSelector(
+            @RequestParam(required = false) String name) {
+        return ResponseEntity.ok(projectService.getOrganizationsForSelector(name));
+    }
+
+    @PostMapping("/{projectId}/organizations")
+    public ResponseEntity<?> addOrganizationToProject(
+            Principal principal,
+            @PathVariable String projectId,
+            @RequestBody AddProjectOrganizationRequest request) {
+        projectService.addOrganizationToProject(principal.getName(), projectId, request);
+        return ResponseEntity.ok(Map.of("message", "Đã thêm tổ chức vào danh sách quản lý dự án."));
     }
 
     @PostMapping("/{projectId}/activities")
