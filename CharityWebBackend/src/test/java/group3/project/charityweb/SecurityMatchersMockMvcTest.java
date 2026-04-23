@@ -10,13 +10,16 @@ import group3.project.charityweb.chatbot.service.ChatbotService;
 import group3.project.charityweb.config.SecurityConfig;
 import group3.project.charityweb.controller.AdminController;
 import group3.project.charityweb.controller.UserController;
+import group3.project.charityweb.model.dto.response.OrganizationSelectorResponse;
 import group3.project.charityweb.model.dto.response.SystemStatisticsResponse;
 import group3.project.charityweb.model.dto.response.UserProfileResponse;
 import group3.project.charityweb.security.CustomAccessDeniedHandler;
 import group3.project.charityweb.security.JwtAuthenticationEntryPoint;
 import group3.project.charityweb.security.JwtAuthenticationFilter;
 import group3.project.charityweb.security.JwtTokenProvider;
+import group3.project.charityweb.service.ActivityService;
 import group3.project.charityweb.service.AdminService;
+import group3.project.charityweb.service.ProjectService;
 import group3.project.charityweb.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -69,6 +73,55 @@ class SecurityMatchersMockMvcTest {
 
     @MockitoBean
     private UserDetailsService userDetailsService;
+
+    @MockitoBean
+    private ProjectService projectService;
+
+    @MockitoBean
+    private ActivityService activityService;
+
+    @Test
+    void projectOrganizations_shouldRequireAuthentication() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/organizations"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(username = "user1", authorities = "ROLE_INDIVIDUAL")
+    void projectOrganizations_shouldForbidIndividual() throws Exception {
+        mockMvc.perform(get("/api/v1/projects/organizations"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "org1", authorities = "ROLE_ORGANIZATION")
+    void projectOrganizations_shouldAllowOrganization() throws Exception {
+        when(projectService.getOrganizationsForSelector(any()))
+                .thenReturn(List.of(OrganizationSelectorResponse.builder().organizationId("o1").name("Org 1").build()));
+
+        mockMvc.perform(get("/api/v1/projects/organizations").param("name", "org"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(username = "user1", authorities = "ROLE_INDIVIDUAL")
+    void addProjectOrganization_shouldForbidIndividual() throws Exception {
+        mockMvc.perform(post("/api/v1/projects/p1/organizations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"organizationId\":\"o2\"}"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "org1", authorities = "ROLE_ORGANIZATION")
+    void addProjectOrganization_shouldAllowOrganization() throws Exception {
+        doNothing().when(projectService).addOrganizationToProject(anyString(), anyString(), any());
+
+        mockMvc.perform(post("/api/v1/projects/p1/organizations")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"organizationId\":\"o2\"}"))
+                .andExpect(status().isOk());
+    }
 
     @Test
     void chatbotAsk_shouldAllowAnonymous() throws Exception {

@@ -1,5 +1,6 @@
 package group3.project.charityweb.chatbot.service;
 
+import group3.project.charityweb.chatbot.client.GeminiClient;
 import group3.project.charityweb.chatbot.config.ChatbotProperties;
 import group3.project.charityweb.chatbot.dto.response.ChatSource;
 import group3.project.charityweb.chatbot.service.model.ChatContext;
@@ -24,8 +25,10 @@ public class ContextBuilderService {
     private final ProjectRepository projectRepository;
     private final ProjectActivityRepository projectActivityRepository;
     private final ChatbotProperties chatbotProperties;
+    private final VectorSearchService vectorSearchService;
+    private final GeminiClient geminiClient;
 
-    public ChatContext build(String projectId) {
+    public ChatContext build(String projectId, String userQuestion) {
         StringBuilder context = new StringBuilder();
         List<ChatSource> sources = new ArrayList<>();
 
@@ -37,9 +40,14 @@ public class ContextBuilderService {
             appendProject(context, sources, project);
             appendActivities(context, sources, project.getProjectId());
         } else {
-            PageRequest pageRequest = PageRequest.of(0, chatbotProperties.getMaxContextProjects());
-            List<Project> topProjects = projectRepository.findByStatusOrderByCreatedAtDesc(ProjectStatus.ACTIVE, pageRequest)
-                    .getContent();
+            List<Float> questionVector = geminiClient.getEmbedding(userQuestion);
+
+            // 2. Tìm top ID dự án liên quan nhất từ RAM
+            List<String> similarIds = vectorSearchService.findTopSimilarProjectIds(questionVector, chatbotProperties.getMaxContextProjects());
+
+            // 3. Kéo data thật từ Database (Cần thêm hàm findAllById trong Repo)
+            List<Project> topProjects = projectRepository.findAllById(similarIds);
+
             for (Project project : topProjects) {
                 appendProject(context, sources, project);
             }
@@ -55,8 +63,9 @@ public class ContextBuilderService {
         context.append("[DONATE_FLOW]\n")
                 .append("1) Chon du an va tao donation.\n")
                 .append("2) He thong tao URL thanh toan (VNPay).\n")
-                .append("3) Sau callback thanh cong, donation duoc cap nhat SUCCESS va cong tien cho du an.\n")
-                .append("4) Nguoi dung co the xem lich su luot ung ho tai /api/v1/users/me/donations, va lich su giao dich thanh toan tai /api/v1/users/me/transactions.\n\n");
+                .append("3) Nguoi dung thanh toan tai URL, sau do VNPay goi callback ve server.\n")
+                .append("4) Sau callback thanh cong, donation duoc cap nhat SUCCESS va cong tien cho du an.\n")
+                .append("5) Nguoi dung co the xem lich su luot ung ho tai users/me/donations, va lich su giao dich thanh toan tai users/me/transactions.\n\n");
     }
 
     private void appendProject(StringBuilder context, List<ChatSource> sources, Project project) {
