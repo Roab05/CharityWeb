@@ -17,12 +17,41 @@ const COLOR_PALETTES = [
     { color: 'from-pink-500 to-pink-600' },
 ];
 
+const FALLBACK_CATEGORIES = [
+    { id: 'education', categoryName: 'GIÁO DỤC' },
+    { id: 'health', categoryName: 'Y TẾ' },
+    { id: 'environment', categoryName: 'MÔI TRƯỜNG' },
+    { id: 'society', categoryName: 'XÃ HỘI' },
+    { id: 'animal', categoryName: 'ĐỘNG VẬT' },
+    { id: 'housing', categoryName: 'NHÀ Ở' },
+    { id: 'technology', categoryName: 'CÔNG NGHỆ' },
+    { id: 'other', categoryName: 'KHÁC' },
+];
+
+const getCategoryTheme = (index) => CATEGORY_THEME[index % CATEGORY_THEME.length];
+
 export default function CategoriesPage() {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
     const [featured, setFeatured] = useState([]);
     const [loading, setLoading] = useState(true);
     const [catLoading, setCatLoading] = useState(true);
+
+    const fetchProjectsByCategory = async (categoryId) => {
+        setProjectsLoading(true);
+        try {
+            const res = await getProjects({ status: 'ACTIVE', categoryId, page: 0, size: 6 });
+            setCategoryProjects(res.data.content || []);
+        } catch {
+            setCategoryProjects([]);
+        }
+        setProjectsLoading(false);
+    };
+
+    const handleSelectCategory = (category) => {
+        setSelectedCategory(category);
+        fetchProjectsByCategory(category.id);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -84,17 +113,29 @@ export default function CategoriesPage() {
             )}
 
             <div>
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Dự án nổi bật</h2>
-                {loading ? (
+                <div className="flex items-center justify-between gap-3 mb-6">
+                    <h2 className="text-2xl font-bold text-gray-800">
+                        {selectedCategory ? `Dự án ${selectedCategory.categoryName.toLocaleLowerCase('vi-VN')}` : 'Dự án theo danh mục'}
+                    </h2>
+                    {selectedCategory && (
+                        <button
+                            onClick={() => navigate(`/projects?status=ACTIVE&categoryId=${encodeURIComponent(selectedCategory.id)}`)}
+                            className="px-4 py-2 rounded-lg text-sm font-medium bg-white text-primary-700 border border-primary-200 hover:bg-primary-50 transition-colors"
+                        >
+                            Xem tất cả
+                        </button>
+                    )}
+                </div>
+                {loading || projectsLoading ? (
                     <LoadingSpinner />
-                ) : featured.length > 0 ? (
+                ) : categoryProjects.length > 0 ? (
                     <div className="grid md:grid-cols-3 gap-6">
-                        {featured.map((p) => (
+                        {categoryProjects.map((p) => (
                             <ProjectCard key={p.projectId} project={p} />
                         ))}
                     </div>
                 ) : (
-                    <p className="text-center text-gray-500 py-8">Chưa có dự án nổi bật</p>
+                    <p className="text-center text-gray-500 py-8">Chưa có dự án thuộc danh mục này</p>
                 )}
             </div>
         </div>

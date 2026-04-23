@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 import java.util.Map;
@@ -19,9 +20,8 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
-    @GetMapping("/callback")
-    public ResponseEntity<?> vnpayReturn(HttpServletRequest request) {
-        paymentService.processReturnCallback(request);
+    @Value("${app.payment-result-url:http://localhost:3000/payment/result}")
+    private String paymentResultUrl;
 
         String queryString = request.getQueryString();
 
@@ -35,5 +35,27 @@ public class PaymentController {
     @GetMapping("/ipn")
     public ResponseEntity<Map<String, String>> vnpayIpn(HttpServletRequest request) {
         return ResponseEntity.ok(paymentService.processIpnCallback(request));
+    }
+
+    private ResponseEntity<Void> redirectToFrontendResult(HttpServletRequest request, String frontendError) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(paymentResultUrl)
+                .queryParam("vnp_ResponseCode", safeParam(request, "vnp_ResponseCode"))
+                .queryParam("vnp_TransactionStatus", safeParam(request, "vnp_TransactionStatus"))
+                .queryParam("vnp_TxnRef", safeParam(request, "vnp_TxnRef"))
+                .queryParam("vnp_Amount", safeParam(request, "vnp_Amount"));
+
+        if (frontendError != null) {
+            builder.queryParam("frontend_error", frontendError);
+        }
+
+        URI location = builder.build(true).toUri();
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, location.toString())
+                .build();
+    }
+
+    private String safeParam(HttpServletRequest request, String name) {
+        String value = request.getParameter(name);
+        return value == null ? "" : value;
     }
 }

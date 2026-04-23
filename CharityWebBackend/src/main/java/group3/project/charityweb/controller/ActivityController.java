@@ -38,4 +38,14 @@ public class ActivityController {
 
         return ResponseEntity.ok(Map.of("message", "Cập nhật bài đăng thành công."));
     }
+
+    @DeleteMapping("/{activityId}")
+    public ResponseEntity<?> deleteActivity(
+            Principal principal,
+            @PathVariable String activityId) {
+
+        activityService.deleteActivity(principal.getName(), activityId);
+
+        return ResponseEntity.ok(Map.of("message", "Đã xóa bài đăng thành công."));
+    }
 }

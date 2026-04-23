@@ -31,4 +31,12 @@ public interface ActivityInteractionRepository extends JpaRepository<ActivityInt
             String userId,
             InteractionType type
     );
+
+    Long deleteByActivity_ActivityIdAndUser_IdAndTypeIn(
+            String activityId,
+            String userId,
+            java.util.Collection<InteractionType> types
+    );
+
+    Long deleteByActivity_ActivityId(String activityId);
 }

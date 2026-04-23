@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
@@ -34,23 +35,35 @@ public class InteractionServiceImpl implements InteractionService {
         User user = (User) accountRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Người dùng không hợp lệ"));
 
-        if (request.getType() == InteractionType.LIKE) {
-            Long deletedCount = interactionRepository.deleteByActivity_ActivityIdAndUser_IdAndType(
-                    activityId,
-                    user.getId(),
-                    InteractionType.LIKE
+        if (request.getType() == InteractionType.LIKE || request.getType() == InteractionType.DISLIKE) {
+            InteractionType clickedType = request.getType();
+
+            Long deletedSameType = interactionRepository.deleteByActivity_ActivityIdAndUser_IdAndType(
+                activityId,
+                user.getId(),
+                clickedType
             );
-            if (deletedCount != null && deletedCount > 0) {
-                return null;
+
+            // Toggle off if user clicked the same reaction again.
+            if (deletedSameType != null && deletedSameType > 0) {
+            return null;
             }
 
-            ActivityInteraction newLike = new ActivityInteraction();
-            newLike.setActivity(activity);
-            newLike.setUser(user);
-            newLike.setType(InteractionType.LIKE);
-            newLike.setCreatedAt(LocalDateTime.now());
-            interactionRepository.save(newLike);
-            return newLike.getInteractionId();
+            // Keep only one reaction type per user per activity.
+            InteractionType oppositeType = clickedType == InteractionType.LIKE ? InteractionType.DISLIKE : InteractionType.LIKE;
+            interactionRepository.deleteByActivity_ActivityIdAndUser_IdAndTypeIn(
+                activityId,
+                user.getId(),
+                List.of(oppositeType)
+            );
+
+            ActivityInteraction reaction = new ActivityInteraction();
+            reaction.setActivity(activity);
+            reaction.setUser(user);
+            reaction.setType(clickedType);
+            reaction.setCreatedAt(LocalDateTime.now());
+            interactionRepository.save(reaction);
+            return reaction.getInteractionId();
         }
 
         ActivityInteraction interaction = new ActivityInteraction();

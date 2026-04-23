@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getProjectById, getProjectActivities, getProjectDonations, getProjectDisbursements as getProjectDisbursementsFromProject } from '../services/ProjectService';
-import { createActivity } from '../services/ProjectService';
+import {
+    getProjectById,
+    getProjectActivities,
+    getProjectDonations,
+    getProjectDisbursements as getProjectDisbursementsFromProject,
+    createActivity,
+    getOrganizationsForSelector,
+    addOrganizationToProject,
+} from '../services/ProjectService';
 import { getActivityInteractions, createInteraction, deleteInteraction } from '../services/InteractionService';
 import { createDisbursement } from '../services/DisbursementService';
 import { uploadFile } from '../services/FileService';
@@ -39,6 +46,16 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const [showDisbursementForm, setShowDisbursementForm] = useState(false);
     const [disbursementForm, setDisbursementForm] = useState({ amount: '', reason: '', evidenceURL: '', recipientInfo: '' });
     const [disbursementLoading, setDisbursementLoading] = useState(false);
+
+    // Co-manager organization form
+    const [showCoManagerForm, setShowCoManagerForm] = useState(false);
+    const [orgSearch, setOrgSearch] = useState('');
+    const [orgOptions, setOrgOptions] = useState([]);
+    const [orgLoading, setOrgLoading] = useState(false);
+    const [selectedOrgId, setSelectedOrgId] = useState('');
+    const [selectedOrgName, setSelectedOrgName] = useState('');
+    const [coManagerLoading, setCoManagerLoading] = useState(false);
+    const [coManagerMsg, setCoManagerMsg] = useState({ type: '', text: '' });
 
     // Interaction states
     const [interactionsByActivity, setInteractionsByActivity] = useState({});
@@ -101,6 +118,26 @@ export default function ProjectDetailPage({ isManageMode = false }) {
         activities.forEach((activity) => fetchInteractions(activity.activityId));
     }, [activities]);
 
+    useEffect(() => {
+        if (!showCoManagerForm) return;
+
+        const timer = setTimeout(async () => {
+            setOrgLoading(true);
+            try {
+                const keyword = orgSearch.trim();
+                const res = await getOrganizationsForSelector(keyword || undefined);
+                const excluded = new Set(project?.organizationNames || []);
+                const filtered = (res.data || []).filter((org) => !excluded.has(org.name));
+                setOrgOptions(filtered);
+            } catch {
+                setOrgOptions([]);
+            }
+            setOrgLoading(false);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [showCoManagerForm, orgSearch, project?.organizationNames]);
+
     const handleCreateActivity = async (e) => {
         e.preventDefault();
         setActivityLoading(true);
@@ -135,6 +172,29 @@ export default function ProjectDetailPage({ isManageMode = false }) {
         setDisbursementLoading(false);
     };
 
+    const handleAddCoManager = async (e) => {
+        e.preventDefault();
+        if (!selectedOrgId) {
+            setCoManagerMsg({ type: 'error', text: 'Vui lòng chọn một tổ chức từ danh sách.' });
+            return;
+        }
+
+        setCoManagerLoading(true);
+        setCoManagerMsg({ type: '', text: '' });
+        try {
+            await addOrganizationToProject(projectId, { organizationId: selectedOrgId });
+            setCoManagerMsg({ type: 'success', text: 'Đã thêm tổ chức đồng quản lý.' });
+            setSelectedOrgId('');
+            setSelectedOrgName('');
+            setOrgSearch('');
+            setShowCoManagerForm(false);
+            fetchProject();
+        } catch (error) {
+            setCoManagerMsg({ type: 'error', text: error?.response?.data?.message || 'Không thể thêm tổ chức. Vui lòng thử lại.' });
+        }
+        setCoManagerLoading(false);
+    };
+
     const handleComment = async (activityId) => {
         const content = commentTexts[activityId]?.trim();
         if (!content) return;
@@ -148,13 +208,6 @@ export default function ProjectDetailPage({ isManageMode = false }) {
     const handleLike = async (activityId) => {
         try {
             await createInteraction(activityId, { type: 'LIKE', content: null });
-            fetchInteractions(activityId);
-        } catch { /* ignore */ }
-    };
-
-    const handleDislike = async (activityId) => {
-        try {
-            await createInteraction(activityId, { type: 'DISLIKE', content: null });
             fetchInteractions(activityId);
         } catch { /* ignore */ }
     };
@@ -187,7 +240,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
 
     const tabs = [
         { key: 'about', label: 'Giới thiệu' },
-        ...(isManageMode ? [{ key: 'activities', label: `Tiến độ (${activities.length})` }] : []),
+        ...(isManageMode ? [{ key: 'activities', label: `Bài đăng (${activities.length})` }] : []),
         { key: 'donations', label: `Ủng hộ (${donations.length})` },
         ...(isManageMode ? [{ key: 'disbursements', label: `Giải ngân (${disbursements.length})` }] : []),
     ];
@@ -245,9 +298,9 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                     setActiveTab(tab.key);
                                     if (tab.key === 'activities') activities.forEach((a) => fetchInteractions(a.activityId));
                                 }}
-                                className={`w-full px-4 py-3 text-sm font-medium text-center whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
-                                        ? 'border-primary-600 text-primary-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                className={`w-full px-4 py-3 text-sm text-center whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
+                                        ? 'border-primary-600 text-primary-600 font-bold'
+                                        : 'border-transparent text-gray-500 font-medium hover:text-gray-700'
                                     }`}
                             >
                                 {tab.label}
@@ -276,20 +329,24 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                 )}
                             </div>
 
-                            {/* Show activities in About tab as "Tiến độ" */}
+                            {/* Show activities in About tab as "Bài đăng" */}
                             {activities.length > 0 && (
                                 <div className="mt-10 border-t pt-8">
-                                    <h2 className="text-xl font-bold text-gray-800 mb-6">Tiến độ</h2>
+                                    <h2 className="text-xl font-bold text-gray-800 mb-6">Bài đăng</h2>
                                     <div className="space-y-6">
                                         {activities.map((activity) => {
                                             const stats = getActivityStats(activity.activityId);
+                                            const userInteractions = (interactionsByActivity[activity.activityId] || []).filter((i) => i.userId === user?.accountId);
+                                            const hasLiked = userInteractions.some((i) => i.type === 'LIKE');
                                             return (
                                                 <div key={activity.activityId} className="card p-6 bg-gray-50">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
-                                                        <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
-                                                            {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded border">
+                                                                {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                     {activity.imageURL && (
                                                         <img
@@ -306,10 +363,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                                             {user && (
                                                                 <>
                                                                     <button onClick={() => handleLike(activity.activityId)} className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
-                                                                        ❤️ Thích ({stats.likes})
-                                                                    </button>
-                                                                    <button onClick={() => handleDislike(activity.activityId)} className="text-sm text-gray-500 hover:text-amber-500 transition-colors flex items-center gap-1">
-                                                                        👎 Không thích ({stats.dislikes})
+                                                                        {hasLiked ? '💔 Bỏ thích' : '❤️ Thích'} ({stats.likes})
                                                                     </button>
                                                                 </>
                                                             )}
@@ -423,13 +477,17 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                             ) : (
                                 activities.map((activity) => {
                                     const stats = getActivityStats(activity.activityId);
+                                    const userInteractions = (interactionsByActivity[activity.activityId] || []).filter((i) => i.userId === user?.accountId);
+                                    const hasLiked = userInteractions.some((i) => i.type === 'LIKE');
                                     return (
                                         <div key={activity.activityId} className="card p-6">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h3 className="font-semibold text-gray-800 text-lg">{activity.title}</h3>
-                                                <span className="text-sm text-gray-500">
-                                                    {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-gray-500">
+                                                        {new Date(activity.createdAt || new Date()).toLocaleString('vi-VN')}
+                                                    </span>
+                                                </div>
                                             </div>
                                             {activity.imageURL && (
                                                 <img
@@ -446,10 +504,7 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                                     {user && (
                                                         <>
                                                             <button onClick={() => handleLike(activity.activityId)} className="text-sm text-gray-500 hover:text-red-500 transition-colors flex items-center gap-1">
-                                                                ❤️ Thích ({stats.likes})
-                                                            </button>
-                                                            <button onClick={() => handleDislike(activity.activityId)} className="text-sm text-gray-500 hover:text-amber-500 transition-colors flex items-center gap-1">
-                                                                👎 Không thích ({stats.dislikes})
+                                                                {hasLiked ? '💔 Bỏ thích' : '❤️ Thích'} ({stats.likes})
                                                             </button>
                                                         </>
                                                     )}
@@ -651,6 +706,104 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                 <p className="text-center text-sm text-gray-500">Dự án hiện không nhận quyên góp</p>
                             )}
                         </div>
+
+                        {isManageMode && isOwnerOrg && (
+                            <div className="card p-6">
+                                <h3 className="font-semibold text-gray-800 mb-3">Đồng quản lý dự án</h3>
+
+                                {coManagerMsg.text && (
+                                    <div className={`text-sm rounded-lg px-3 py-2 mb-3 border ${coManagerMsg.type === 'success'
+                                            ? 'bg-green-50 text-green-700 border-green-200'
+                                            : 'bg-red-50 text-red-700 border-red-200'
+                                        }`}>
+                                        {coManagerMsg.text}
+                                    </div>
+                                )}
+
+                                <p className="text-sm text-gray-500 mb-3">
+                                    Các tổ chức đang quản lý: <span className="font-medium text-gray-700">{(project.organizationNames || []).join(', ') || 'Chưa có'}</span>
+                                </p>
+
+                                {!showCoManagerForm ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setShowCoManagerForm(true);
+                                            setCoManagerMsg({ type: '', text: '' });
+                                        }}
+                                        className="btn-primary text-sm w-full"
+                                    >
+                                        + Thêm tổ chức đồng quản lý
+                                    </button>
+                                ) : (
+                                    <form onSubmit={handleAddCoManager} className="space-y-3">
+                                        <input
+                                            type="text"
+                                            className="input-field"
+                                            placeholder="Tìm theo tên tổ chức..."
+                                            value={orgSearch}
+                                            onChange={(e) => {
+                                                setOrgSearch(e.target.value);
+                                                setSelectedOrgId('');
+                                                setSelectedOrgName('');
+                                            }}
+                                        />
+
+                                        <div className="border border-gray-200 rounded-lg max-h-40 overflow-y-auto bg-white">
+                                            {orgLoading ? (
+                                                <p className="text-sm text-gray-500 px-3 py-2">Đang tìm tổ chức...</p>
+                                            ) : orgOptions.length === 0 ? (
+                                                <p className="text-sm text-gray-500 px-3 py-2">Không tìm thấy tổ chức phù hợp.</p>
+                                            ) : (
+                                                orgOptions.map((org) => (
+                                                    <button
+                                                        key={org.organizationId}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSelectedOrgId(org.organizationId);
+                                                            setSelectedOrgName(org.name);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedOrgId === org.organizationId ? 'bg-primary-50 text-primary-700 font-medium' : 'text-gray-700'
+                                                            }`}
+                                                    >
+                                                        {org.name}
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+
+                                        {selectedOrgName && (
+                                            <p className="text-sm text-gray-600">
+                                                Đã chọn: <span className="font-medium text-primary-700">{selectedOrgName}</span>
+                                            </p>
+                                        )}
+
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="submit"
+                                                disabled={coManagerLoading}
+                                                className="btn-primary text-sm flex-1"
+                                            >
+                                                {coManagerLoading ? 'Đang thêm...' : 'Thêm tổ chức'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setShowCoManagerForm(false);
+                                                    setOrgSearch('');
+                                                    setOrgOptions([]);
+                                                    setSelectedOrgId('');
+                                                    setSelectedOrgName('');
+                                                }}
+                                                className="btn-secondary text-sm"
+                                            >
+                                                Hủy
+                                            </button>
+                                        </div>
+                                    </form>
+                                )}
+                            </div>
+                        )}
 
                         {/* Recent Donations */}
                         {donations.length > 0 && (

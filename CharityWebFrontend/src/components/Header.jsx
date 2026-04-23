@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoginModal from './modals/LoginModal';
 
 export default function Header() {
     const { user, logout } = useAuth();
+    const location = useLocation();
     const navigate = useNavigate();
     const [showLogin, setShowLogin] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -39,6 +40,19 @@ export default function Header() {
         return user?.fullName || user?.username;
     };
 
+    const isActiveRoute = (path) => {
+        if (path === '/') return location.pathname === '/';
+        return location.pathname === path || location.pathname.startsWith(`${path}/`);
+    };
+
+    const navLinkClass = (path, baseClass = 'text-gray-700') => {
+        const active = isActiveRoute(path);
+        return `${baseClass} px-2 py-2 rounded-lg text-sm lg:text-base transition-all whitespace-nowrap ${active
+            ? 'text-primary-700 font-bold bg-primary-50'
+            : 'font-medium hover:text-primary-600 hover:bg-primary-50'
+        }`;
+    };
+
     return (
         <>
             <header className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
@@ -54,31 +68,34 @@ export default function Header() {
 
                         {/* Desktop Nav - Đã căn chỉnh để trên 1 dòng, không bị bẻ chữ */}
                         <nav className="hidden md:flex items-center justify-center gap-2 lg:gap-6 flex-1 px-4 whitespace-nowrap">
-                            <Link to="/" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/" className={navLinkClass('/')}>
                                 Trang chủ
                             </Link>
-                            <Link to="/projects" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/explore" className={navLinkClass('/explore')}>
+                                Khám phá
+                            </Link>
+                            <Link to="/projects" className={navLinkClass('/projects')}>
                                 Dự án
                             </Link>
-                            <Link to="/categories" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/categories" className={navLinkClass('/categories')}>
                                 Danh mục
                             </Link>
-                            <Link to="/about" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                            <Link to="/about" className={navLinkClass('/about')}>
                                 Giới thiệu
                             </Link>
                             
                             {user?.roleType === 'ORGANIZATION' && (
                                 <>
-                                    <Link to="/my-projects" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-primary-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                    <Link to="/my-projects" className={navLinkClass('/my-projects', 'text-gray-700')}>
                                         Quản lý dự án
                                     </Link>
-                                    <Link to="/projects/new" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-primary-50 transition-all">
+                                    <Link to="/projects/new" className={navLinkClass('/projects/new')}>
                                         Tạo dự án
                                     </Link>
                                 </>
                             )}
                             {user?.roleType === 'ADMIN' && (
-                                <Link to="/admin" className="px-2 py-2 rounded-lg text-sm lg:text-base font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition-all">
+                                <Link to="/admin" className={navLinkClass('/admin', 'text-amber-600')}>
                                     Quản trị
                                 </Link>
                             )}
