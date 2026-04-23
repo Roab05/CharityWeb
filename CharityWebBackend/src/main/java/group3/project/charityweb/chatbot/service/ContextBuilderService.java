@@ -60,12 +60,14 @@ public class ContextBuilderService {
     }
 
     private void appendDonateFlow(StringBuilder context) {
-        context.append("[DONATE_FLOW]\n")
-                .append("1) Chon du an va tao donation.\n")
-                .append("2) He thong tao URL thanh toan (VNPay).\n")
-                .append("3) Nguoi dung thanh toan tai URL, sau do VNPay goi callback ve server.\n")
-                .append("4) Sau callback thanh cong, donation duoc cap nhat SUCCESS va cong tien cho du an.\n")
-                .append("5) Nguoi dung co the xem lich su luot ung ho tai users/me/donations, va lich su giao dich thanh toan tai users/me/transactions.\n\n");
+        context.append("[DONATE_FLOW - HUONG DAN CHI TIET]\n")
+                .append("1) Xem danh sach du an tai trang chu hoac duong dan: /projects\n")
+                .append("2) Chon mot du an cu the de xem chi tiet tai: /projects/{projectId}\n")
+                .append("3) Nhan nut 'Quyen gop' ngay tren giao dien chi tiet du an.\n")
+                .append("4) Nhap so tien va loi nhan, sau do he thong se goi API /api/v1/projects/{projectId}/donations de tao yeu cau.\n")
+                .append("5) He thong tra ve link thanh toan VNPay. Nguoi dung thuc hien thanh toan tren cong VNPay.\n")
+                .append("6) Sau khi thanh toan, he thong tu dong chuyen huong ve trang ket qua va cap nhat trang thai SUCCESS.\n")
+                .append("7) Xem lich su ung ho tai trang Ca nhan hoac: /users/me/donations\n\n");
     }
 
     private void appendProject(StringBuilder context, List<ChatSource> sources, Project project) {

@@ -15,6 +15,7 @@ public interface ProjectService {
     String createProject(String username, CreateProjectRequest request);
     Page<ProjectResponse> getAllProjects(ProjectStatus status, String categoryId, int page, int size);
     Page<ProjectResponse> getMyManagedProjects(String username, ProjectStatus status, int page, int size);
+    ProjectResponse getProjectResponseById(String projectId);
     List<OrganizationSelectorResponse> getOrganizationsForSelector(String name);
     void addOrganizationToProject(String username, String projectId, AddProjectOrganizationRequest request);
 }

@@ -158,9 +158,6 @@ export default function ChatbotWidget() {
 
             const botMsg = { role: 'bot', content: data.answer };
             setMessages((prev) => [...prev, botMsg]);
-
-            // Load new suggestions after response
-            loadSuggestions();
         } catch (err) {
             const status = err.response?.status;
             let errMsg;
