@@ -85,6 +85,20 @@ public class ProjectServiceImpl implements ProjectService {
         return projectPage.map(this::mapToProjectResponse);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Page<ProjectResponse> getMyManagedProjects(String username, ProjectStatus status, int page, int size) {
+        organizationRepository.findByUsername(username)
+                .orElseThrow(() -> new UnauthorizedAccessException("Tài khoản không phải Tổ chức!"));
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<Project> projectPage = status == null
+                ? projectRepository.findByOrganizations_UsernameOrderByCreatedAtDesc(username, pageRequest)
+                : projectRepository.findByOrganizations_UsernameAndStatusOrderByCreatedAtDesc(username, status, pageRequest);
+
+        return projectPage.map(this::mapToProjectResponse);
+    }
+
     public ProjectResponse getProjectResponseById(String projectId) {
         Project project = getProjectEntityById(projectId);
         return mapToProjectResponse(project);

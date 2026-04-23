@@ -269,7 +269,7 @@ export default function ProfilePage() {
                     ) : (
                         <div className="space-y-3 max-h-[500px] overflow-y-auto">
                             {transactions.map((t, i) => {
-                                const isSuccess = t.paymentStatus === 0;
+                                const isSuccess = t.paymentStatus === 1;
                                 return (
                                     <div key={i} className="flex items-start justify-between p-4 bg-gray-50 rounded-xl">
                                         <div className="flex-1 min-w-0 mr-4">

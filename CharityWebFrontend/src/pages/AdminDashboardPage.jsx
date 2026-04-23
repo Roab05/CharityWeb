@@ -50,11 +50,11 @@ export default function AdminDashboardPage() {
                 getPendingDisbursements(),
                 getCategories(),
             ]);
-            if (statsRes.status === 'fulfilled') setStats(statsRes.value.data);
-            if (orgsRes.status === 'fulfilled') setPendingOrgs(orgsRes.value.data || []);
-            if (projectsRes.status === 'fulfilled') setPendingProjects(projectsRes.value.data || []);
-            if (disbRes.status === 'fulfilled') setPendingDisbursements(disbRes.value.data || []);
-            if (categoriesRes.status === 'fulfilled') setCategories(categoriesRes.value.data || []);
+                if (statsRes.status === 'fulfilled') setStats(statsRes.value.data || null);
+                if (orgsRes.status === 'fulfilled') setPendingOrgs(orgsRes.value.data?.content || []);
+                if (projectsRes.status === 'fulfilled') setPendingProjects(projectsRes.value.data?.content || []);
+                if (disbRes.status === 'fulfilled') setPendingDisbursements(disbRes.value.data?.content || []);
+                if (categoriesRes.status === 'fulfilled') setCategories(categoriesRes.value.data || []);
         } catch { /* ignore */ }
         setLoading(false);
     };
@@ -168,10 +168,10 @@ export default function AdminDashboardPage() {
             {/* Overview */}
             {activeTab === 'overview' && stats && (
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard title="Tổng quyên góp" value={formatCurrency(stats.totalDonatedAmount)} color="text-primary-600" bg="bg-primary-50" />
-                    <StatCard title="Dự án đang hoạt động" value={stats.activeProjectsCount} color="text-blue-600" bg="bg-blue-50" />
-                    <StatCard title="Tổ chức chờ duyệt" value={stats.pendingOrganizationsCount} color="text-amber-600" bg="bg-amber-50" />
-                    <StatCard title="Dự án chờ duyệt" value={stats.pendingProjectsCount} color="text-purple-600" bg="bg-purple-50" />
+                        <StatCard title="Tổng quyên góp" value={formatCurrency(stats?.totalDonatedAmount || 0)} color="text-primary-600" bg="bg-primary-50" />
+                        <StatCard title="Dự án đang hoạt động" value={stats?.activeProjectsCount ?? 0} color="text-blue-600" bg="bg-blue-50" />
+                        <StatCard title="Tổ chức chờ duyệt" value={stats?.pendingOrganizationsCount ?? 0} color="text-amber-600" bg="bg-amber-50" />
+                        <StatCard title="Dự án chờ duyệt" value={stats?.pendingProjectsCount ?? 0} color="text-purple-600" bg="bg-purple-50" />
                 </div>
             )}
 

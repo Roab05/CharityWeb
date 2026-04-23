@@ -123,6 +123,7 @@ public class PaymentServiceImpl implements PaymentService {
             transactionRepository.save(transaction);
         } else {
             transaction.setPaymentStatus(0);
+            transaction.setCompletedAt(LocalDateTime.now());
             transaction.getDonation().setStatus(DonationStatus.FAILED);
 
             transactionRepository.save(transaction);

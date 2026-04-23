@@ -245,9 +245,9 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                     setActiveTab(tab.key);
                                     if (tab.key === 'activities') activities.forEach((a) => fetchInteractions(a.activityId));
                                 }}
-                                className={`w-full px-4 py-3 text-sm font-medium text-center whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
-                                        ? 'border-primary-600 text-primary-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                className={`w-full px-4 py-3 text-sm text-center whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.key
+                                        ? 'border-primary-600 text-primary-600 font-bold'
+                                        : 'border-transparent text-gray-500 font-medium hover:text-gray-700'
                                     }`}
                             >
                                 {tab.label}
