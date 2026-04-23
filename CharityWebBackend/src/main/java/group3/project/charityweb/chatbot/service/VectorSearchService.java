@@ -24,17 +24,14 @@ public class VectorSearchService {
     private final ProjectRepository projectRepository;
     private final GeminiClient geminiClient;
 
-    // Nơi lưu trữ Vector trên RAM
     private final List<ProjectVector> inMemoryStore = new ArrayList<>();
 
-    // Chạy 1 lần duy nhất khi App khởi động xong
     @EventListener(ApplicationReadyEvent.class)
     public void initVectorStore() {
         log.info("[Vector Store] Đang khởi tạo bộ nhớ ngữ nghĩa...");
         List<Project> activeProjects = projectRepository.findByStatusOrderByCreatedAtDesc(ProjectStatus.ACTIVE); // Bạn cần thêm hàm này trong Repo
 
         for (Project project : activeProjects) {
-            // Ghép nối nội dung cần AI "hiểu"
             String contentToEmbed = project.getProjectName() + ". " + project.getDescription();
             try {
                 List<Float> vector = geminiClient.getEmbedding(contentToEmbed);
@@ -46,7 +43,6 @@ public class VectorSearchService {
         log.info("[Vector Store] Khởi tạo xong. Đã lưu {} dự án lên RAM.", inMemoryStore.size());
     }
 
-    // Hàm tìm kiếm dự án tương đồng nhất
     public List<String> findTopSimilarProjectIds(List<Float> queryVector, int topK) {
         if (inMemoryStore.isEmpty() || queryVector == null) {
             return new ArrayList<>();
@@ -59,7 +55,6 @@ public class VectorSearchService {
                 .collect(Collectors.toList());
     }
 
-    // Thuật toán toán học: Cosine Similarity (Càng gần 1.0 càng giống nhau)
     private double cosineSimilarity(List<Float> vectorA, List<Float> vectorB) {
         double dotProduct = 0.0;
         double normA = 0.0;

@@ -71,9 +71,6 @@ export default function Header() {
                             <Link to="/" className={navLinkClass('/')}>
                                 Trang chủ
                             </Link>
-                            <Link to="/explore" className={navLinkClass('/explore')}>
-                                Khám phá
-                            </Link>
                             <Link to="/projects" className={navLinkClass('/projects')}>
                                 Dự án
                             </Link>

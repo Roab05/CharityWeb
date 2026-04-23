@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -155,14 +156,18 @@ public class AdminServiceImpl implements AdminService {
         }
 
         // 3. Xử lý logic theo trạng thái mới
-        if (request.getStatus() == DisbursementStatus.PENDING) {
+        if (request.getStatus() == DisbursementStatus.APPROVED) {
             Project project = disbursement.getProject();
 
-            if (project.getCurrentAmount().compareTo(disbursement.getAmount()) < 0) {
-                throw new InvalidDisbursementException("Số dư dự án không đủ để thực hiện giải ngân này.");
+            BigDecimal totalDisbursed = project.getDisbursedAmount() != null ? project.getDisbursedAmount() : BigDecimal.ZERO;
+
+            BigDecimal availableBalance = project.getCurrentAmount().subtract(totalDisbursed);
+
+            if (availableBalance.compareTo(disbursement.getAmount()) < 0) {
+                throw new InvalidDisbursementException("Số dư quỹ khả dụng không đủ để thực hiện giải ngân này.");
             }
 
-            project.setCurrentAmount(project.getCurrentAmount().subtract(disbursement.getAmount()));
+            project.setDisbursedAmount(totalDisbursed.add(disbursement.getAmount()));
 
             disbursement.setStatus(DisbursementStatus.APPROVED); // Duyệt
             disbursement.setDisbursementTime(LocalDateTime.now()); // Ghi nhận thời gian tiền đi

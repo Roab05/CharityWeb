@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class GeminiHttpClient implements GeminiClient {
 
     private static final int HTTP_SERVICE_UNAVAILABLE = 503;
+    private static final int HTTP_TOO_MANY_REQUESTS = 429;
 
     private final RestClient geminiRestClient;
     private final GeminiProperties geminiProperties;
@@ -65,7 +66,7 @@ public class GeminiHttpClient implements GeminiClient {
                     return extractGenerationResult(response);
                 } catch (RestClientResponseException ex) {
                     int statusCode = ex.getStatusCode().value();
-                    boolean retryable = statusCode == HTTP_SERVICE_UNAVAILABLE;
+                    boolean retryable = (statusCode == HTTP_SERVICE_UNAVAILABLE || statusCode == HTTP_TOO_MANY_REQUESTS);
                     if (retryable && shouldRetry(attempt, maxAttempts)) {
                         sleepBackoff(attempt, model, "HTTP " + statusCode);
                         continue;
@@ -75,8 +76,8 @@ public class GeminiHttpClient implements GeminiClient {
                             ex.getStatusCode(), ex.getStatusText(), ex.getResponseBodyAsString());
                     lastFailure = new ChatbotUpstreamException("Lỗi từ Gemini API (HTTP " + ex.getStatusCode() + ").", ex);
 
-                    if (statusCode == HTTP_SERVICE_UNAVAILABLE) {
-                        log.warn("[Gemini API] Model {} quá tải, thử model khác nếu có.", model);
+                    if (statusCode == HTTP_SERVICE_UNAVAILABLE || statusCode == HTTP_TOO_MANY_REQUESTS) {
+                        log.warn("[Gemini API] Model {} báo lỗi {} (Quá tải/Hết quota), thử model dự phòng khác nếu có.", model, statusCode);
                         break;
                     }
                     throw lastFailure;
@@ -115,7 +116,6 @@ public class GeminiHttpClient implements GeminiClient {
     private GeminiResponse callGemini(String model, String apiKey, GeminiRequest request) {
         String endpoint = "/v1beta/models/" + model + ":generateContent?key=" + apiKey;
 
-        // Log endpoint nhưng che API Key đi để đảm bảo bảo mật
         String maskedEndpoint = "/v1beta/models/" + model + ":generateContent?key=***";
         log.info("[Gemini API] Đang gửi request tới: {}", maskedEndpoint);
 
@@ -154,7 +154,7 @@ public class GeminiHttpClient implements GeminiClient {
                 .filter(partText -> partText != null && !partText.isBlank())
                 .map(String::trim)
                 .collect(Collectors.joining("\n"));
-        if (text == null || text.isBlank()) {
+        if (text.isBlank()) {
             log.warn("[Gemini API] AI trả về text rỗng.");
             throw new ChatbotUpstreamException("Gemini trả về câu trả lời rỗng.");
         }

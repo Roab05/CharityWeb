@@ -65,33 +65,36 @@ export default function AdminDashboardPage() {
     }, []);
 
     const handleVerifyOrg = async (orgId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await verifyOrganization(orgId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleApproveProject = async (projectId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await approveProject(projectId, { status });
             fetchAll();
         } catch { /* ignore */ }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleDisbursementStatus = async (disbursementId, status) => {
+        setConfirmModal({ show: false });
         setActionLoading(true);
         try {
             await updateDisbursementStatus(disbursementId, { status });
             fetchAll();
-        } catch { /* ignore */ }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra từ máy chủ khi xử lý yêu cầu.';
+            alert("Lỗi: " + errorMessage);
+        }
         setActionLoading(false);
-        setConfirmModal({ show: false });
     };
 
     const handleCreateCategory = async (e) => {
