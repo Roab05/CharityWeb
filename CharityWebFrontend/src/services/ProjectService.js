@@ -21,3 +21,7 @@ export const getProjectDonations = (projectId) => api.get(`/projects/${projectId
 export const createDisbursement = (projectId, data) => api.post(`/projects/${projectId}/disbursements`, data);
 
 export const getProjectDisbursements = (projectId) => api.get(`/projects/${projectId}/disbursements`);
+
+export const getMyManagedProjects = (params) => {
+    return api.get('/projects/me/managed', { params });
+};

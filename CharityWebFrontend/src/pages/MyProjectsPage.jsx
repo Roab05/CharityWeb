@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { getProjects } from '../services/ProjectService';
+import { getMyManagedProjects } from '../services/ProjectService';
 import ProjectCard from '../components/ProjectCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useNavigate } from 'react-router-dom';
@@ -16,8 +16,7 @@ export default function MyProjectsPage() {
         const fetchMyProjects = async () => {
             setLoading(true);
             try {
-                // Giả sử backend đã hỗ trợ filter theo creatorId
-                const res = await getProjects({ creatorId: user.userId });
+                const res = await getMyManagedProjects({ page: 0, size: 20 });
                 setProjects(res.data.content || []);
             } catch {
                 setProjects([]);

@@ -97,6 +97,9 @@ export default function ProjectDetailPage({ isManageMode = false }) {
         } catch { /* ignore */ }
     };
 
+    const isManager = user?.roleType === 'ORGANIZATION' && 
+                      project?.organizationNames?.includes(user.orgName || user.username);
+
     useEffect(() => {
         const fetchAll = async () => {
             setLoading(true);
@@ -691,13 +694,18 @@ export default function ProjectDetailPage({ isManageMode = false }) {
                                 </div>
                             </div>
 
-                            {isActive && user && (
+                            {isActive && user && !isManager && (
                                 <button
                                     onClick={() => setShowDonation(true)}
                                     className="w-full bg-primary-600 text-white py-3 rounded-xl font-semibold hover:bg-primary-700 transition-all shadow-sm hover:shadow-md"
                                 >
                                     💚 Ủng hộ ngay
                                 </button>
+                            )}
+                            {isManager && (
+                                <div className="bg-blue-50 text-blue-700 text-sm text-center py-3 px-4 rounded-xl mt-4 border border-blue-100">
+                                    Bạn đang là quản lý của dự án này.
+                                </div>
                             )}
                             {isActive && !user && (
                                 <p className="text-center text-sm text-gray-500">Đăng nhập để ủng hộ dự án này</p>
